@@ -198,6 +198,29 @@ input { font-family: inherit; }
 #accessGranted.denied .granted-title { color: var(--danger); text-shadow: 0 0 20px var(--danger); }
 @keyframes deniedFlash { 0%,100%{background:rgba(0,0,0,0.98);} 50%{background:rgba(60,0,0,0.98);} }
 
+/* second glitch system: used only on ACCESS DENIED (red alert style) */
+.system-glitch-fail {
+  animation: glitch-shake-fail 0.08s infinite, glitch-flicker-fail 0.12s infinite;
+  pointer-events: none;
+}
+@keyframes glitch-shake-fail {
+  0% { transform: translate(0,0); }
+  20% { transform: translate(-14px, 8px); }
+  40% { transform: translate(12px, -14px); }
+  60% { transform: translate(-10px, 12px); }
+  80% { transform: translate(14px, -6px); }
+  100% { transform: translate(0,0); }
+}
+@keyframes glitch-flicker-fail {
+  0% { opacity: 1; filter: drop-shadow(0 0 16px red) saturate(3) contrast(1.6); }
+  40% { opacity: 0.25; filter: drop-shadow(0 0 24px #ff3860) invert(0.15); }
+  100% { opacity: 1; filter: none; }
+}
+#alertFlash { position: fixed; inset: 0; z-index: 8100; pointer-events: none; display: none;
+  background: repeating-linear-gradient(0deg, rgba(255,0,40,0.12) 0 2px, transparent 2px 4px); }
+#alertFlash.active { display: block; animation: alertStrobe 0.15s infinite; }
+@keyframes alertStrobe { 0%{background-color: rgba(255,0,40,0.0);} 50%{background-color: rgba(255,0,40,0.18);} 100%{background-color: rgba(255,0,40,0.0);} }
+
 /* ==================== 6b. FLOATING HACK WINDOWS ==================== */
 #hackLayer { position: fixed; inset: 0; z-index: 6500; pointer-events: none; overflow: hidden; }
 .hwin {
@@ -276,12 +299,14 @@ input { font-family: inherit; }
 .modal-body { padding: 20px; }
 .code-box { background: #000; border: 1px solid #30363d; padding: 15px; color: var(--primary); font-size: 13px; font-family: var(--font-mono); overflow-x: auto; margin-bottom: 20px; white-space: pre-wrap; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 </head>
 <body>
 
 <div class="crt-overlay"></div>
 <div class="vignette"></div>
 <div class="rgb-split-overlay" id="rgbOverlay"></div>
+<div id="alertFlash"></div>
 <canvas id="matrixCanvas"></canvas>
 
 <!-- 1. LOGIN SCREEN -->
@@ -356,7 +381,7 @@ input { font-family: inherit; }
 <div id="mainApp">
   <div class="top-nav">
     <div class="nav-logo">[<span>SAHIL</span>_OS]</div>
-    <button class="btn-logout" onclick="location.reload()"><i class="fas fa-power-off"></i> DISCONNECT</button>
+    <button class="btn-logout" onclick="sb.auth.signOut(); location.reload()"><i class="fas fa-power-off"></i> DISCONNECT</button>
   </div>
 
   <div class="container">
@@ -453,6 +478,12 @@ input { font-family: inherit; }
 </div>
 
 <script>
+/* ==================== 0. SUPABASE CONFIG ==================== */
+const SUPABASE_URL = 'https://nznbaqqgkjpmrihhevwa.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Ty7Ea6FZRyMyc7kut0IYeA_VbD30MWS';
+const ADMIN_EMAIL_MAP = { 'admin': 'admin@hackersahil.com' }; // typed username -> real email
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 /* ==================== 1. MATRIX BACKGROUND ==================== */
 const canvas = document.getElementById('matrixCanvas');
 const ctx = canvas.getContext('2d');
@@ -633,14 +664,21 @@ let failCount = 0;     // wrong attempts so far
 let hackFail = false;  // true => sequence ends with ACCESS DENIED
 const loginScreen = document.getElementById('loginScreen');
 
-loginForm.addEventListener('submit', (e) => {
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   initAudio();
   unlockVoice();
+  const submitBtn = loginForm.querySelector('.btn-access');
   const u = document.getElementById('userInput').value.trim();
-  const p = document.getElementById('passInput').value.trim();
+  const p = document.getElementById('passInput').value;
 
-  if(u === 'admin' && p === 'admin') {
+  const email = ADMIN_EMAIL_MAP[u.toLowerCase()] || u; // allows typing "admin" or a real email
+  submitBtn.disabled = true;
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: p });
+  submitBtn.disabled = false;
+
+  if (!error && data.session) {
     failCount = 0; hackFail = false;
     errorMsg.classList.remove('show');
     loginScreen.classList.add('hidden');
@@ -648,22 +686,16 @@ loginForm.addEventListener('submit', (e) => {
     return;
   }
 
-  // wrong credentials
+  // wrong credentials: run the full hacking sequence straight away, ending in ACCESS DENIED
   failCount++;
   playDenied();
   loginCard.style.animation = 'shake 0.4s';
   setTimeout(() => loginCard.style.animation = '', 400);
 
-  if(failCount < 3) {
-    errorMsg.textContent = 'Access Denied. Invalid Credentials.';
-    errorMsg.classList.add('show');
-  } else {
-    // 3rd wrong try: run the full hacking sequence, but it ends in ACCESS DENIED
-    errorMsg.classList.remove('show');
-    hackFail = true;
-    loginScreen.classList.add('hidden');
-    setTimeout(startTerminalSequence, 700);
-  }
+  errorMsg.classList.remove('show');
+  hackFail = true;
+  loginScreen.classList.add('hidden');
+  setTimeout(startTerminalSequence, 700);
 });
 
 function resetLogin() {
@@ -679,6 +711,7 @@ const terminalScreen = document.getElementById('terminalScreen');
 const kaliBody = document.getElementById('kaliBody');
 const hackLayer = document.getElementById('hackLayer');
 const rgbOverlay = document.getElementById('rgbOverlay');
+const alertFlash = document.getElementById('alertFlash');
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
@@ -741,13 +774,15 @@ function floodLine() {
 
 // ---- glitch ----
 function glitchBurst(ms) {
-  document.body.classList.add('system-glitch');
-  rgbOverlay.classList.add('active');
+  const cls = hackFail ? 'system-glitch-fail' : 'system-glitch';
+  document.body.classList.add(cls);
+  if (hackFail) alertFlash.classList.add('active'); else rgbOverlay.classList.add('active');
   const wins = hackLayer.querySelectorAll('.hwin');
   if (wins.length) wins[rnd(0, wins.length - 1)].classList.add('gl');
   playGlitchTick();
   setTimeout(() => {
-    document.body.classList.remove('system-glitch');
+    document.body.classList.remove(cls);
+    alertFlash.classList.remove('active');
     rgbOverlay.classList.remove('active');
     hackLayer.querySelectorAll('.gl').forEach(w => w.classList.remove('gl'));
   }, ms);
@@ -823,6 +858,54 @@ const winBuilders = [
   }
 ];
 
+const winBuildersFail = [
+  // 1. Intrusion detected (red)
+  () => {
+    const el = makeWin({title: 'INTRUSION_DETECTED', color: '#ff3860', left: '3%', top: '7%', w: 'min(54vw, 270px)', dur: 1.6, dx: 18, dy: 16, r0: -2, r1: 2, html: '<div class="hw-log"></div>'});
+    const log = el.querySelector('.hw-log');
+    const msgs = ['SOURCE FLAGGED', 'SESSION BLOCKED', 'SIGNATURE MATCHED', 'PACKET DROPPED', 'ANOMALY SCORE HIGH'];
+    every(() => {
+      const d = document.createElement('div');
+      d.textContent = `[${rndHex(4)}] ${msgs[rnd(0, msgs.length - 1)]}`;
+      log.appendChild(d);
+      while (log.children.length > 8) log.removeChild(log.firstChild);
+    }, 80);
+  },
+  // 2. IP trace (orange-red)
+  () => {
+    const el = makeWin({title: 'IP_TRACE.EXE', color: '#ff7a3d', left: 'calc(100% - min(50vw, 260px) - 3%)', top: '14%', w: 'min(50vw, 260px)', dur: 1.5, dx: -16, dy: 14, r0: 2, r1: -2,
+      html: '<div class="hw-big"></div><div class="hw-stat">LOCATING SOURCE...</div><div class="hw-bar"><i></i></div>'});
+    const big = el.querySelector('.hw-big'), stat = el.querySelector('.hw-stat'), bar = el.querySelector('.hw-bar i');
+    let p = 0;
+    every(() => {
+      big.textContent = `${rnd(10,223)}.${rnd(0,255)}.${rnd(0,255)}.${rnd(1,254)}`;
+      p = Math.min(100, p + rnd(4,9));
+      bar.style.width = p + '%';
+      stat.textContent = p < 100 ? 'LOCATING SOURCE...' : 'SOURCE PINPOINTED';
+    }, 110);
+  },
+  // 3. Lockdown counter (red)
+  () => {
+    const el = makeWin({title: 'LOCKDOWN_PROTOCOL', color: '#ff3860', left: '7%', top: '41%', w: 'min(54vw, 280px)', dur: 1.8, dx: 16, dy: -16, r0: 1, r1: -2,
+      html: '<div class="hw-big">INITIATED</div><div class="hw-stat">REVOKING SESSION</div><div class="hw-bar"><i></i></div>'});
+    const bar = el.querySelector('.hw-bar i');
+    let p = 0;
+    every(() => { p = Math.min(100, p + 5); bar.style.width = p + '%'; }, 100);
+  },
+  // 4. Alert siren log (red, reused radar slot as pulsing grid)
+  () => {
+    const el = makeWin({title: 'ALERT_LOG', color: '#ff3860', left: 'calc(100% - min(46vw, 240px) - 5%)', top: '48%', w: 'min(46vw, 240px)', dur: 1.4, dx: -14, dy: -16, r0: -1, r1: 2,
+      html: '<div class="hw-stat" style="font-size:18px;">⚠ ACCESS VIOLATION</div><div class="hw-log"></div>'});
+    const log = el.querySelector('.hw-log');
+    every(() => {
+      const d = document.createElement('div');
+      d.textContent = 'ATTEMPT REJECTED :: ' + rndHex(6);
+      log.appendChild(d);
+      while (log.children.length > 5) log.removeChild(log.firstChild);
+    }, 95);
+  }
+];
+
 async function startTerminalSequence() {
   hackTimers.forEach(clearInterval); hackTimers = [];
   hackLayer.innerHTML = '';
@@ -837,8 +920,9 @@ async function startTerminalSequence() {
   runCommands();
   setTimeout(() => every(floodLine, 55), 1500);
 
-  // ~0.9s onward: floating windows pop up one by one
-  winBuilders.forEach((build, i) => setTimeout(build, 900 + i * 650));
+  // ~0.9s onward: floating windows pop up one by one (different set + colours when access fails)
+  const activeWinBuilders = hackFail ? winBuildersFail : winBuilders;
+  activeWinBuilders.forEach((build, i) => setTimeout(build, 900 + i * 650));
 
   // glitch bursts all around
   setTimeout(() => every(() => glitchBurst(rnd(80, 170)), 480), 1200);
@@ -853,8 +937,9 @@ async function startTerminalSequence() {
   // 5s: cleanup -> ACCESS GRANTED
   setTimeout(() => {
     hackTimers.forEach(clearInterval); hackTimers = [];
-    document.body.classList.remove('system-glitch');
+    document.body.classList.remove('system-glitch', 'system-glitch-fail');
     rgbOverlay.classList.remove('active');
+    alertFlash.classList.remove('active');
     hackLayer.innerHTML = '';
     showResult(!hackFail);
   }, 5000);
