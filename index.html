@@ -365,6 +365,17 @@ input { font-family: inherit; }
 .heart::before { top: -10px; left: 0; } .heart::after { top: 0; left: -10px; }
 @keyframes floatHeart { 0% { transform: translateY(0) rotate(45deg) scale(0.5); opacity: 0; } 10% { opacity: 0.8; } 100% { transform: translateY(-100vh) rotate(45deg) scale(1.5); opacity: 0; } }
 
+#exitModal{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px}
+#exitModal.show{display:flex}
+.exit-box{background:#0b0f14;border:1px solid #00ff41;border-radius:16px;padding:24px;max-width:320px;width:100%;text-align:center;color:#fff;box-shadow:0 0 25px rgba(0,255,65,.25);font-family:inherit}
+.exit-box h3{margin:0 0 8px;font-size:18px;color:#00ff41}
+.exit-box p{margin:0 0 18px;font-size:13px;opacity:.8}
+.exit-row{display:flex;gap:10px}
+.exit-row button{flex:1;padding:12px;border:none;border-radius:10px;font-weight:700;font-family:inherit;cursor:pointer}
+#exitStay{background:#00ff41;color:#000}
+#exitLeave{background:#ff3860;color:#fff}
+#toastMsg{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:#111;border:1px solid #ff3860;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;max-width:90vw;opacity:0;pointer-events:none;transition:.3s;z-index:99999;text-align:center}
+#toastMsg.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
@@ -485,6 +496,8 @@ input { font-family: inherit; }
   </div>
 </div>
 
+<div id="exitModal"><div class="exit-box"><h3>Leave website?</h3><p>Are you sure you want to exit?</p><div class="exit-row"><button id="exitStay">STAY</button><button id="exitLeave">EXIT</button></div></div></div>
+<div id="toastMsg"></div>
 <script>
 /* ==================== SUPABASE SETUP ==================== */
 const SUPABASE_URL = 'https://nznbaqqgkjpmrihhevwa.supabase.co'; 
@@ -804,8 +817,8 @@ async function generateGFWish(category) {
   const fileInput = document.getElementById('gfPhoto');
   const btn = document.getElementById('btnGfWish');
   
-  if (!name || !month || !day) { alert("Please fill Name, Month, and Day!"); return; }
-  if (fileInput.files.length === 0) { alert("Please select a photo!"); return; }
+  if (!name || !month || !day) { showMsg("Please fill Name, Month and Day!"); return; }
+  if (fileInput.files.length === 0) { showMsg("Please select a photo!"); return; }
 
   month = formatMonth(month);
   day = formatDay(day);
@@ -837,11 +850,11 @@ async function generateGFWish(category) {
     
     btn.innerHTML = '<i class="fas fa-check"></i> LINK GENERATED!';
     btn.style.background = '#00e676';
-    playChime();
+    try { playChime(); } catch(e) {}
 
   } catch (error) {
     console.error(error);
-    alert("Error: " + error.message);
+    showMsg("Error: " + error.message);
     btn.innerHTML = '<i class="fas fa-magic"></i> GENERATE WISH LINK';
     btn.disabled = false;
   }
@@ -849,7 +862,7 @@ async function generateGFWish(category) {
 
 async function loadWish(id, themeType) {
   const { data, error } = await sb.from('birthdays').select('*').eq('id', id).single();
-  if (error || !data) { alert("Invalid Link or Data Deleted!"); window.location.href = window.location.pathname; return; }
+  if (error || !data) { showMsg("Invalid Link or Data Deleted!"); setTimeout(() => { window.location.href = window.location.pathname; }, 2000); return; }
 
   document.getElementById('wishName').innerText = data.name;
   document.getElementById('wishDateText').innerText = `${data.month} ${data.day}`;
@@ -882,6 +895,24 @@ function createFloatingElements(themeType) {
     }, i * 200);
   }
 }
+
+/* ===== In-page message (replaces browser alert) ===== */
+function showMsg(t){ const e=document.getElementById('toastMsg'); e.textContent=t; e.classList.add('show'); clearTimeout(window._tm); window._tm=setTimeout(()=>e.classList.remove('show'),3000); }
+
+/* ===== Back button guard (only on main site, not on wish links) ===== */
+(function(){
+  if (new URLSearchParams(location.search).get('wish')) return;
+  const modal=document.getElementById('exitModal');
+  history.pushState({guard:1},'',location.href);
+  let leaving=false;
+  window.addEventListener('popstate',function(){
+    if(leaving) return;
+    modal.classList.add('show');
+    history.pushState({guard:1},'',location.href);
+  });
+  document.getElementById('exitStay').onclick=()=>modal.classList.remove('show');
+  document.getElementById('exitLeave').onclick=()=>{ modal.classList.remove('show'); leaving=true; history.go(-2); setTimeout(()=>{ try{window.close();}catch(e){} },400); };
+})();
 </script>
 </body>
 </html>
