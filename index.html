@@ -592,6 +592,14 @@ function playGlitchSound() { noiseHit({ dur: 1.0, freq: 7000, to: 150, q: 1.5, v
 function playBoom() { sweep('sine', 110, 30, 0.8, 0.5); noiseHit({ dur: 0.5, freq: 450, type: 'lowpass', vol: 0.2 }); }
 function playClunk() { noiseHit({ dur: 0.08, freq: 1500, type: 'lowpass', vol: 0.28 }); sweep('sine', 160, 50, 0.18, 0.38); noiseHit({ dur: 0.03, freq: 4500, type: 'highpass', vol: 0.15 }); }
 function playRatchet() { for(let i = 0; i < 4; i++) setTimeout(() => { noiseHit({ dur: 0.015, freq: 4000, type: 'highpass', vol: 0.16 }); noiseHit({ dur: 0.04, freq: 900, q: 3, vol: 0.1 }); }, i * 65); }
+function copyWishLink() {
+  const inp = document.getElementById('gfLink'), b = document.getElementById('gfCopyBtn');
+  const done = () => { b.innerHTML = '<i class="fas fa-check"></i> COPIED!'; setTimeout(() => { b.innerHTML = '<i class="fas fa-copy"></i> COPY'; }, 1800); };
+  if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(inp.value).then(done).catch(() => { inp.select(); document.execCommand('copy'); done(); }); }
+  else { inp.select(); inp.setSelectionRange(0, 99999); document.execCommand('copy'); done(); }
+}
+function previewWishLink() { const u = document.getElementById('gfLink').value; if (u) window.open(u, '_blank'); }
+function playChime() { try { initAudio && initAudio(); } catch(e) {} if(!audioCtx) return; [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playBeep(f, 'sine', 0.35, 0.12), i * 110)); }
 function playDenied() { sweep('sawtooth', 120, 95, 0.2, 0.13, 600); setTimeout(() => sweep('sawtooth', 120, 85, 0.28, 0.13, 600), 230); noiseHit({ dur: 0.15, freq: 300, type: 'lowpass', vol: 0.12 }); }
 function startDrone(sec) { if(!audioCtx) return; const t = audioCtx.currentTime; const g = audioCtx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.09, t + sec * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + sec + 0.15); const lp = audioCtx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(120, t); lp.frequency.exponentialRampToValueAtTime(700, t + sec); lp.connect(g); g.connect(master); [50, 100.4, 150.2].forEach(f => { const o = audioCtx.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(f, t); o.frequency.linearRampToValueAtTime(f * 1.25, t + sec); o.connect(lp); o.start(t); o.stop(t + sec + 0.2); }); const n = audioCtx.createBufferSource(); n.buffer = noiseBuf; n.loop = true; const nf = audioCtx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 500; const ng = audioCtx.createGain(); ng.gain.setValueAtTime(0.0001, t); ng.gain.exponentialRampToValueAtTime(0.05, t + sec * 0.6); ng.gain.exponentialRampToValueAtTime(0.0001, t + sec + 0.15); n.connect(nf); nf.connect(ng); ng.connect(master); n.start(t); n.stop(t + sec + 0.2); }
 function playDataBlip() { if(Math.random() < 0.3) return; noiseHit({ dur: 0.012, freq: 5500 + Math.random() * 2500, type: 'highpass', vol: 0.05 }); if(Math.random() < 0.25) noiseHit({ dur: 0.03, freq: 1200, q: 4, vol: 0.05 }); }
@@ -744,7 +752,10 @@ function openProjectTarget(category, sub) {
       <div id="gfResult" style="display:none; margin-top:25px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:15px;">
         <p style="font-size:12px; margin-bottom:5px;">LINK GENERATED SUCCESSFULLY:</p>
         <input type="text" id="gfLink" class="wish-input" readonly onclick="this.select()" style="padding-left:15px;">
-        <p style="font-size:11px; margin-top:8px; opacity:0.7;">Copy this link and send it.</p>
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button type="button" id="gfCopyBtn" onclick="copyWishLink()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#00e676; color:#000; font-weight:700; font-family:inherit; cursor:pointer;"><i class="fas fa-copy"></i> COPY</button>
+          <button type="button" onclick="previewWishLink()" style="flex:1; padding:12px; border:none; border-radius:10px; background:#00d4ff; color:#000; font-weight:700; font-family:inherit; cursor:pointer;"><i class="fas fa-eye"></i> PREVIEW</button>
+        </div>
       </div>
     </div>
 
@@ -822,7 +833,7 @@ async function generateGFWish(category) {
     const finalUrl = `${baseUrl}?wish=${newId}&type=${category.toLowerCase()}`;
 
     document.getElementById('gfLink').value = finalUrl;
-    document.getElementById('gfResult').style.display = 'block';
+    document.getElementById('gfResult').style.display = 'block'; document.getElementById('gfResult').scrollIntoView({behavior:'smooth', block:'center'});
     
     btn.innerHTML = '<i class="fas fa-check"></i> LINK GENERATED!';
     btn.style.background = '#00e676';
