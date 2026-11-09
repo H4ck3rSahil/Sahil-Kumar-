@@ -421,6 +421,16 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
 .nf .rb{display:flex;gap:10px;margin-top:10px}
 .nf .rb button{flex:1;padding:12px;border:0;border-radius:14px;font:600 13px 'Poppins',sans-serif;cursor:pointer;background:var(--ring);color:var(--ac)}
 .nf .rb button:first-child{background:var(--ac);color:#fff}
+
+/* Boyfriend surprise form additions */
+.nf .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(66px,1fr));gap:9px;margin-top:10px}
+.nf .photo-thumb{position:relative;width:100%;aspect-ratio:1;border-radius:12px;overflow:hidden;background:#f4eff7;border:1px solid #eee}
+.nf .photo-thumb img{width:100%;height:100%;object-fit:cover}
+.nf .photo-thumb button{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#211629dd;color:#fff;font-size:13px;line-height:22px}
+.nf .add-more{width:100%;padding:11px;border:1.5px dashed var(--ac);border-radius:13px;background:var(--ring);color:var(--ac);font:600 12px 'Poppins',sans-serif;margin-top:8px;cursor:pointer}
+.nf .hint{font:400 11px 'Poppins',sans-serif;color:#9a8aa3;margin-top:5px}
+.nf .bf-status{font:500 12px 'Poppins',sans-serif;color:#9a8aa3;margin-top:8px}
+
 </style>
 </head>
 <body>
@@ -799,12 +809,12 @@ function openProjectTarget(category, sub) {
         <label class="wish-form-label">UPLOAD PHOTO</label>
         <div class="wish-input-wrap">
           <i class="fas fa-camera"></i>
-          <input type="file" id="gfPhoto" class="wish-input" accept="image/*" style="padding-top: 9px;">
+          <input type="file" id="gfPhoto" class="wish-input" accept="image/*" multiple style="padding-top: 9px;">
         </div>
       </div>
       
       <button onclick="generateGFWish('${category}')" id="btnGfWish" style="width:100%; padding:15px; margin-top:15px; background:linear-gradient(135deg, var(--primary), var(--secondary)); border:none; border-radius:8px; color:#fff; font-weight:700; cursor:pointer; font-family:var(--font-mono); font-size:14px; box-shadow:0 5px 15px rgba(0,0,0,0.3); transition:0.3s;">
-        <i class="fas fa-magic"></i> GENERATE WISH LINK
+        <i class="fas fa-link"></i> GENERATE LINK
       </button>
       
       <div id="gfResult" style="display:none; margin-top:25px; border-top:1px dashed rgba(255,255,255,0.2); padding-top:15px;">
@@ -860,29 +870,34 @@ async function generateGFWish(category) {
   let month = document.getElementById('gfMonth').value.trim();
   let day = document.getElementById('gfDay').value.trim();
   const fileInput = document.getElementById('gfPhoto');
+  const files = [...fileInput.files].filter(f => f.type.startsWith('image/'));
   const btn = document.getElementById('btnGfWish');
   
   if (!name || !month || !day) { showMsg("Please fill Name, Month and Day!"); return; }
-  if (fileInput.files.length === 0) { showMsg("Please select a photo!"); return; }
+  if (files.length === 0) { showMsg("Please select at least one photo!"); return; }
 
   month = formatMonth(month);
   day = formatDay(day);
   document.getElementById('gfMonth').value = month;
   document.getElementById('gfDay').value = day;
 
-  const file = fileInput.files[0];
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPLOADING...';
   btn.disabled = true;
 
   try {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
-    const { data: uploadData, error: uploadError } = await sb.storage.from('photos').upload(fileName, file);
-    if (uploadError) throw uploadError;
-    const { data: urlData } = sb.storage.from('photos').getPublicUrl(fileName);
-    const imageUrl = urlData.publicUrl;
+    const imageUrls = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExt = (file.name.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi, '') || 'jpg';
+      const fileName = `${Date.now()}_${i}_${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const { error: uploadError } = await sb.storage.from('photos').upload(fileName, file);
+      if (uploadError) throw uploadError;
+      const { data: urlData } = sb.storage.from('photos').getPublicUrl(fileName);
+      imageUrls.push(urlData.publicUrl);
+    }
+    const imagePayload = JSON.stringify({ cover: imageUrls[0], images: imageUrls });
 
-    const { data: dbData, error: dbError } = await sb.from('birthdays').insert([{ name: name, month: month, day: day, image_url: imageUrl }]).select();
+    const { data: dbData, error: dbError } = await sb.from('birthdays').insert([{ name: name, month: month, day: day, image_url: imagePayload }]).select();
     if (dbError) throw dbError;
 
     const newId = dbData[0].id;
@@ -900,7 +915,7 @@ async function generateGFWish(category) {
   } catch (error) {
     console.error(error);
     showMsg("Error: " + error.message);
-    btn.innerHTML = '<i class="fas fa-magic"></i> GENERATE WISH LINK';
+    btn.innerHTML = '<i class="fas fa-link"></i> GENERATE LINK';
     btn.disabled = false;
   }
 }
@@ -1104,7 +1119,7 @@ const TH={
 partner:{c1:'#e91e63',c2:'#ff8fb8',bgA:'#fff1f3',bgB:'#ffd6e0',ink:'#5a1030',pal:['#ff4d8d','#ff8fb8','#ffc2d6','#f7b267','#c9184a','#ffd166'],em:['💖','💕','🌸','💗'],tag:'make it count',sub:'To the one who makes my world bloom',
  msg:n=>'Every single day with you feels like a gift, '+n+'. Today the world celebrates the day you were born, and I celebrate the reason my heart smiles. Thank you for being my person, my peace and my favourite adventure. Here is to a year that blooms with you in it.',
  why:[['💞','Your smile','It fixes my worst day in a second.'],['🌹','Your heart','So kind, so warm, impossible not to love.'],['✨','Our moments','Tiny things that became forever memories.']],end:'I love you more than words can say. Always yours. 💖'},
-sibling:{c1:'#ff8a00',c2:'#ffbf69',bgA:'#fff8ec',bgB:'#ffe3b3',ink:'#4a2c00',pal:['#ff9f1c','#ffbf69','#ffd166','#ef476f','#06d6a0','#fb8500'],em:['⭐','🎉','🔥','🎈'],tag:'partner in crime',sub:'To my forever partner in chaos',
+sibling:{c1:'#ff8a00',c2:'#ffbf69',bgA:'#fff8ec',bgB:'#ffe3b3',ink:'#4a2c00',pal:['#ff9f1c','#ffbf69','#ffd166','#ef476f','#06d6a0','#fb8500'],em:['⭐','🎉','🔥','🎈'],tag:'built-in best friend',sub:'To my favourite sibling',
  msg:n=>'Happy Birthday '+n+'! From fights over the remote to having each other\'s back no matter what, you are the one person who gets me completely. Thanks for being my first friend and my forever ally. May this year bring you everything you deserve and a little extra.',
  why:[['🤝','Always there','Fights, jokes and everything in between.'],['😂','Chief of chaos','Nobody makes me laugh like you do.'],['🛡️','My shield','You got my back, I got yours.']],end:'Annoying you forever is my favourite hobby. Love you! 🧡'},
 friend:{c1:'#00a8cc',c2:'#7fdbff',bgA:'#eefbff',bgB:'#c8f1ff',ink:'#032b3a',pal:['#00b4d8','#90e0ef','#7b2ff7','#06d6a0','#ffd166','#ff6b9d'],em:['🎈','🥳','💙','🎉'],tag:'ride or die',sub:'To the friend who feels like family',
@@ -1118,7 +1133,8 @@ const P=new URLSearchParams(window.QS!==undefined?window.QS:location.search),PUR
 let type=(P.get('type')||'partner').toLowerCase();type=TH[type]?type:(ALIAS[type]||'partner');
 const mk=(c1,c2,bgA,bgB,ink,pal)=>({c1,c2,bgA,bgB,ink,pal});
 const ACC={rose:mk('#e91e63','#ff8fb8','#fff1f3','#ffd6e0','#5a1030',['#ff4d8d','#ff8fb8','#ffc2d6','#f7b267','#c9184a','#ffd166']),gold:mk('#ff8a00','#ffbf69','#fff8ec','#ffe3b3','#4a2c00',['#ff9f1c','#ffbf69','#ffd166','#ef476f','#06d6a0','#fb8500']),ocean:mk('#00a8cc','#7fdbff','#eefbff','#c8f1ff','#032b3a',['#00b4d8','#90e0ef','#7b2ff7','#06d6a0','#ffd166','#ff6b9d']),mint:mk('#2a9d8f','#95d5b2','#f3fbf7','#d8f0e4','#12362f',['#2a9d8f','#e9c46a','#f4a261','#e76f51','#8ecae6','#95d5b2']),violet:mk('#7c5cff','#b39dff','#f6f2ff','#ddd2ff','#2a1b5e',['#7c5cff','#b39dff','#ff8fb8','#ffd166','#06d6a0','#00b4d8'])};
-const REL={girlfriend:'To my beautiful girlfriend',boyfriend:'To my amazing boyfriend',brother:'To the best brother ever',sister:'To the best sister ever'};
+const REL={girlfriend:'To my beautiful girlfriend',boyfriend:'To my amazing boyfriend',brother:'To the best brother ever',sister:'To the best sister ever',friend:'To an amazing friend',mom:'To my wonderful mom',mother:'To my wonderful mom',dad:'To my amazing dad',father:'To my amazing dad'};
+const REL_TAG={girlfriend:'my favourite person',boyfriend:'my favourite person',brother:'my built-in best friend',sister:'my forever sister',friend:'my favourite teammate',mom:'my first hero',mother:'my first hero',dad:'my forever guide',father:'my forever guide'};
 const QT={partner:'Not every gift comes wrapped. Mine is having you.',sibling:'Fights fade, memories stay, and you are my favourite memory.',friend:'Some people feel like home in a different face. You are mine.',parent:'Your love was my first lesson, and the one I never forget.'};
 const T=Object.assign({},TH[type],ACC[P.get('c')]||{}),R=document.documentElement.style;
 ['c1','c2','bgA','bgB','ink'].forEach(k=>R.setProperty('--'+k,T[k]));
@@ -1183,12 +1199,12 @@ $('skip').onclick=()=>{skipped=true;T0-=30000};
 /* ---------- INIT ---------- */
 function split(el,txt){el.innerHTML=[...txt].map((ch,i)=>'<span style="transition-delay:'+(.35+i*.05)+'s">'+ch+'</span>').join('')}
 function fill(){
- $('name').textContent=D.name;$('cap').textContent=D.name;$('sub').textContent=(REL[P.get('rel')]||T.sub)+' '+T.em[0];$('quote').textContent=QT[type];$('sigl').textContent=P.get('from')?'— '+P.get('from'):'';$('tag').textContent=T.tag;
+ $('name').textContent=D.name;$('cap').textContent=D.name;const rel=(P.get('rel')||'').toLowerCase();$('sub').textContent=(REL[rel]||T.sub)+' '+T.em[0];$('quote').textContent=QT[type];$('sigl').textContent=P.get('from')?'— '+P.get('from'):'';$('tag').textContent=REL_TAG[rel]||T.tag;
  split($('w1'),'Happy');split($('w2'),'Birthday');
  const mi=MN.findIndex(m=>m.startsWith(String(D.month||'').toLowerCase().slice(0,3))&&String(D.month).length>=3),dd=parseInt(D.day);
  if(mi>=0&&dd){const now=new Date(),td=new Date(now.getFullYear(),now.getMonth(),now.getDate());let nx=new Date(now.getFullYear(),mi,dd);if(nx<td)nx.setFullYear(nx.getFullYear()+1);const df=Math.round((nx-td)/864e5),nm=MN[mi][0].toUpperCase()+MN[mi].slice(1);
   $('date').textContent=(df===0?'🎉 It\'s today! · ':'⏳ '+df+' days to go · ')+nm+' '+dd}else $('date').textContent=D.month?D.month+' '+D.day:'🎂 Today is your day';
- const im=$('photo');if(D.image_url)im.src=D.image_url;im.onerror=()=>{im.removeAttribute('src')};
+ const im=$('photo'),gallery=$('extraGallery');let imageList=[];if(D.image_url){try{const parsed=JSON.parse(D.image_url);if(parsed&&Array.isArray(parsed.images))imageList=parsed.images.filter(Boolean);else if(parsed&&parsed.cover)imageList=[parsed.cover];else imageList=[D.image_url]}catch(e){imageList=[D.image_url]}}if(imageList.length){im.src=imageList[0];gallery.innerHTML='';imageList.slice(1).forEach((url,i)=>{const thumb=document.createElement('img');thumb.src=url;thumb.alt='Memory photo '+(i+2);thumb.loading='lazy';gallery.appendChild(thumb)})}else{im.removeAttribute('src');gallery.innerHTML=''}im.onerror=()=>{im.removeAttribute('src')};
  $('why').innerHTML=T.why.map(w=>'<div><i>'+w[0]+'</i><p><b>'+w[1]+'</b><span>'+w[2]+'</span></p></div>').join('');
  $('final').textContent=T.end;
 }
@@ -1219,6 +1235,143 @@ load();
 </body>
 </html>
 </script>
+
+<script type="text/plain" id="bfTpl">
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happy Handsome 💗</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#ffeedd;--ink:#3a1a1a;--soft:#7a6a66;--pink:#ff6b81;--btn:#ffb3b3;--btnb:#b35a5a;--card:#fffaf5;--pk:#f9c6cf;--bl:#c9defa;--gr:#d3e6b8;--yl:#fde3a7;--pu:#e3d3f3;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#2a1620;--ink:#ffe6ea;--soft:#c8a9b0;--card:#3a2230;--btn:#8a3d52;--btnb:#ffb3c1}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#2a1620;--ink:#ffe6ea;--soft:#c8a9b0;--card:#3a2230;--btn:#8a3d52;--btnb:#ffb3c1}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;min-height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:Quicksand,system-ui,sans-serif;overscroll-behavior:none}
+body{height:100vh;height:100dvh;overflow:hidden}.cap{font-family:Caveat,cursive;font-weight:700}
+#bg{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.fh{position:absolute;bottom:-40px;color:var(--pink);opacity:.18;animation:up linear forwards}
+@keyframes up{to{transform:translateY(-115vh) rotate(30deg)}}
+.s{position:fixed;inset:0;width:100%;height:100vh;height:100dvh;min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(9px,2.1vh,15px);padding:calc(env(safe-area-inset-top,0px) + 54px) clamp(14px,4vw,22px) calc(env(safe-area-inset-bottom,0px) + 34px);opacity:0;pointer-events:none;transition:opacity .7s,filter .7s;filter:blur(8px);text-align:center;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;z-index:1}
+.s.on{opacity:1;pointer-events:auto;filter:none}
+h2{font-size:30px;margin:0;line-height:1.1;font-weight:700}.sub{font-size:14px;color:var(--soft);margin:0}
+.btn{font:700 14px Quicksand,sans-serif;color:var(--ink);background:var(--btn);border:1.5px solid var(--btnb);border-radius:30px;padding:11px 24px;cursor:pointer;box-shadow:0 6px 16px #ff6b8133;transition:transform .2s}
+.btn:active{transform:scale(.94)}
+#dots{position:fixed;top:calc(16px + env(safe-area-inset-top,0px));left:14px;display:flex;gap:5px;z-index:9}
+#dots i{width:7px;height:7px;border-radius:50%;background:var(--pink);opacity:.25;transition:.4s}
+#dots i.a{opacity:1;transform:scale(1.3)}
+#top{position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px;z-index:9}
+#top button{width:36px;height:36px;border-radius:50%;border:0;background:var(--card);box-shadow:0 3px 10px #0002;font-size:16px;cursor:pointer;color:var(--ink)}
+#editDlg{position:fixed;inset:0;z-index:30;background:#0008;display:none;place-items:center;padding:18px}#editDlg.on{display:grid}#editDlg .editbox{width:min(330px,100%);background:var(--card);color:var(--ink);border-radius:22px;padding:22px;display:flex;flex-direction:column;gap:11px;box-shadow:0 16px 45px #0003}#editDlg input{width:100%;padding:12px;border-radius:11px;border:1px solid var(--btnb);background:var(--bg);color:var(--ink);font:600 14px Quicksand,sans-serif;outline:none}
+#mark{position:fixed;bottom:calc(7px + env(safe-area-inset-bottom,0px));right:14px;font-size:10px;color:var(--soft);opacity:.7;z-index:2}
+.peek{width:calc(100% + 40px);max-width:440px;margin:0 -20px;animation:sway 4s ease-in-out infinite}
+@keyframes sway{50%{transform:translateX(8px)}}
+.tape{padding:9px 22px;font-size:32px;box-shadow:0 4px 10px #0002;clip-path:polygon(0 4%,3% 0,97% 3%,100% 0,100% 96%,97% 100%,3% 97%,0 100%);color:#3a1a1a;animation:drop .7s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes drop{from{opacity:0;transform:translateY(-40px) rotate(8deg) scale(1.2)}to{opacity:1}}
+.deco{position:absolute;font-size:22px;animation:tw 2s ease-in-out infinite}
+@keyframes tw{50%{transform:scale(1.4) rotate(20deg);opacity:.6}}
+.notes{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:340px}
+.note{min-height:82px;padding:14px 10px;font-size:20px;line-height:1.1;box-shadow:2px 5px 10px #0002;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#3a1a1a;animation:pop .6s both}
+@keyframes pop{from{opacity:0;transform:scale(.3) rotate(20deg)}to{opacity:1}}
+.heart{width:110px;height:100px;cursor:pointer;filter:drop-shadow(0 12px 14px #ff6b8166);animation:beat 1.2s infinite}
+@keyframes beat{50%{transform:scale(1.12)}}
+.stack{position:relative;width:min(76vw,270px);height:min(48vh,310px);min-height:190px;display:none;touch-action:pan-y}
+.pol{position:absolute;inset:0;background:#fff;padding:10px 10px 43px;box-shadow:0 10px 24px #0004;transition:transform .5s,opacity .4s;cursor:grab;color:#3a1a1a}
+.pol img{width:100%;height:100%;object-fit:cover;background:#f7e7e4}
+.extra-gallery{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}.extra-gallery img{width:clamp(58px,18vw,88px);height:clamp(58px,18vw,88px);object-fit:cover;border-radius:12px;box-shadow:0 4px 12px #0002}
+.pol b{position:absolute;bottom:9px;left:0;right:0;font:700 21px Caveat,cursive}
+.card{background:var(--card);border-radius:26px;padding:23px 21px 18px;width:100%;max-width:350px;box-shadow:0 14px 34px #ff6b8133;text-align:left;font-size:14px;line-height:1.65;color:var(--soft);white-space:pre-wrap}
+.card strong{color:var(--ink)}.badge{position:absolute;top:-17px;right:14px;width:40px;height:40px;border-radius:50%;background:var(--card);display:grid;place-items:center;box-shadow:0 4px 10px #ff6b8144}
+.sig{font-size:25px;color:#d6336c;text-align:right;border-top:1px solid #0001;margin-top:12px;padding-top:8px}
+.couple{width:min(78vw,290px);max-height:28vh;object-fit:contain;border-radius:18px;box-shadow:0 10px 25px #0002}
+.li{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:14px;padding:10px 14px;width:min(280px,90vw);font-size:14px;font-weight:700;box-shadow:0 4px 12px #ff6b8122;animation:fadeup .6s both}
+.li span{width:30px;height:30px;border-radius:50%;background:#ffe0e6;display:grid;place-items:center;color:var(--pink)}
+@keyframes fadeup{from{opacity:0;transform:translateY(10px)}}
+.meter{width:260px;height:14px;border-radius:9px;background:#ff6b8130;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9aa8,#ff3d68)}
+.fx{position:fixed;pointer-events:none;z-index:15;font-size:22px;animation:burst 1.2s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+#gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;transition:opacity .5s}
+#gate.off{opacity:0;pointer-events:none}
+.gift{font-size:58px;border:0;background:none;animation:beat 1.2s infinite}
+@media(max-height:720px){.s{justify-content:flex-start;padding-top:calc(env(safe-area-inset-top,0px) + 50px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px);gap:9px}.s h2{font-size:clamp(22px,4vh,29px)}.peek{max-height:clamp(100px,22vh,155px);width:min(100%,400px)}.notes{gap:8px;max-width:320px}.note{min-height:clamp(56px,10vh,72px);font-size:clamp(16px,2.5vh,19px);padding:9px 8px}.heart{width:88px;height:80px}.stack{height:min(38vh,240px);min-height:165px}.card{padding:17px 16px 13px;font-size:13px}.couple{max-height:20vh}.li{padding:8px 12px}.meter{height:12px}}
+@media(max-width:360px){.tape{font-size:clamp(25px,8vw,31px);padding:8px 17px}.notes{gap:7px}.note{font-size:16px;min-height:62px}.btn{padding:10px 19px}.stack{width:min(78vw,245px)}}
+/* Responsive fit: safe-area aware, scrollable when a screen is too short, larger on roomy phones. */
+.s{justify-content:flex-start;min-height:0;height:100dvh;padding-top:calc(env(safe-area-inset-top,0px) + 58px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 42px);gap:clamp(8px,1.7dvh,15px);}
+.s::before,.s::after{content:"";display:block;flex:1 0 10px;min-height:10px}
+.s>*{flex-shrink:0}
+.s h2{font-size:clamp(25px,4.5dvh,34px)}
+.peek{width:min(100%,440px);max-height:clamp(112px,25dvh,205px);object-fit:contain}
+.tape{font-size:clamp(30px,5.2dvh,40px);padding:clamp(8px,1.5dvh,12px) clamp(18px,5vw,28px)}
+.notes{width:min(100%,380px);gap:clamp(8px,1.5dvh,13px)}
+.note{min-height:clamp(64px,10.5dvh,94px);font-size:clamp(17px,2.8dvh,23px)}
+.heart{width:clamp(88px,17dvh,128px);height:auto;flex:none}
+.stack{width:min(78vw,320px);height:min(43dvh,340px);min-height:170px;flex:none}
+.card{width:min(100%,420px);font-size:clamp(13px,1.9dvh,15px);line-height:1.6}
+.couple{width:min(78vw,320px);max-height:26dvh}
+.li{width:min(100%,320px);font-size:clamp(13px,1.9dvh,15px)}
+.meter{width:min(78vw,300px)}
+#gate{padding:calc(env(safe-area-inset-top,0px) + 22px) 20px calc(env(safe-area-inset-bottom,0px) + 22px);overflow-y:auto}
+#editDlg{padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 14px);overflow-y:auto}
+@media(max-height:620px){.s{padding-top:calc(env(safe-area-inset-top,0px) + 48px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 30px);gap:7px}.s::before,.s::after{flex-basis:5px;min-height:5px}.s h2{font-size:clamp(21px,4.1dvh,27px)}.peek{max-height:19dvh}.tape{font-size:clamp(24px,4.8dvh,31px);padding:6px 17px}.note{min-height:clamp(48px,9dvh,66px);font-size:clamp(14px,2.4dvh,18px);padding:7px}.heart{width:clamp(72px,15dvh,94px)}.stack{height:34dvh;min-height:145px}.card{padding:14px 15px 12px;font-size:12px}.couple{max-height:17dvh}.li{padding:7px 10px}.meter{height:11px}}
+@media(orientation:landscape) and (max-height:520px){.s{padding-left:max(18px,env(safe-area-inset-left,0px));padding-right:max(18px,env(safe-area-inset-right,0px));}.peek{max-height:16dvh;width:min(56vw,360px)}.stack{height:42dvh;width:min(48vw,300px)}.couple{max-height:20dvh}}
+@media(min-width:700px) and (min-height:800px){.s{gap:clamp(13px,2dvh,20px)}.peek{max-height:28dvh}.stack{width:min(48vw,350px);height:min(48dvh,390px)}.notes{max-width:420px}.note{min-height:92px;font-size:24px}.card{max-width:440px;font-size:16px}}
+
+</style></head><body>
+<div id="bg"></div><div id="dots"></div>
+<div id="top"><button id="mu" aria-label="Music">♪</button><button id="editNames" aria-label="Edit names">✎</button></div><div id="mark">made with love 💗</div>
+<div id="editDlg"><div class="editbox"><b class="cap" style="font-size:25px">Make it yours 💌</b><input id="editHis" maxlength="45" placeholder="His name"><input id="editFrom" maxlength="45" placeholder="Your name (optional)"><button class="btn" id="saveNames">Save changes</button><button class="btn" id="cancelNames" type="button">Close</button></div></div>
+<div id="gate"><button class="gift" id="giftBtn">🎁</button><h2 class="cap">A little surprise for you…</h2><p class="sub">Made with lots of love 💗</p><button class="btn" id="openBtn">Open your surprise →</button></div>
+<section class="s" id="s0"><h2 class="cap" style="font-size:25px">Someone is thinking<br>about you…</h2>
+<svg class="peek" viewBox="0 0 360 190"><path d="M0 50 L360 20 L360 40 L0 80Z" fill="#e8dccf"/><path d="M0 70 Q180 40 360 40 L360 150 Q180 150 0 160Z" fill="#6b3f2a"/><path d="M30 80 Q180 20 330 70 L330 140 L30 140Z" fill="#7a4a33"/><path d="M60 95 Q180 60 300 95 L300 150 L60 150Z" fill="#ffd9c4"/><path d="M40 100 Q100 60 180 80 Q250 60 320 100 Q300 70 180 55 Q70 60 40 100Z" fill="#5a3322"/><g><circle cx="120" cy="125" r="26" fill="#fff"/><circle cx="125" cy="127" r="20" fill="#6b3f2a"><animate attributeName="cx" values="125;112;125" dur="4s" repeatCount="indefinite"/></circle><circle cx="119" cy="120" r="6" fill="#fff"/><circle cx="240" cy="125" r="26" fill="#fff"/><circle cx="245" cy="127" r="20" fill="#6b3f2a"><animate attributeName="cx" values="245;232;245" dur="4s" repeatCount="indefinite"/></circle><circle cx="239" cy="120" r="6" fill="#fff"/></g><ellipse cx="90" cy="155" rx="22" ry="9" fill="#ffa8a0" opacity=".7"/><ellipse cx="270" cy="155" rx="22" ry="9" fill="#ffa8a0" opacity=".7"/><rect x="0" y="150" width="360" height="30" fill="#e8dccf"/><g fill="#ffd9c4" stroke="#b88"><circle cx="110" cy="152" r="9"/><circle cx="128" cy="150" r="9"/><circle cx="146" cy="152" r="9"/><circle cx="214" cy="152" r="9"/><circle cx="232" cy="150" r="9"/><circle cx="250" cy="152" r="9"/></g><text x="12" y="125" font-size="26" fill="#ff4d7a">♥</text><text x="320" y="105" font-size="22" fill="#ff4d7a">♥</text></svg>
+<h2 class="cap" style="font-size:25px">And it’s someone who<br>adores you ♡</h2><button class="btn" data-next>See your surprise →</button></section>
+<section class="s" id="s1"><span class="deco" style="top:20%;left:12%;color:#e91e63">♡</span><span class="deco" style="top:20%;right:14%;color:#f5a623">☆</span>
+<div class="tape cap" style="background:var(--yl);transform:rotate(-4deg)">Happy</div><div class="tape cap" style="background:var(--pk);transform:rotate(2deg)">Handsome</div><div class="tape cap" style="background:var(--bl);transform:rotate(-3deg)" id="hisName">Handsome</div>
+<svg width="92" height="92" viewBox="0 0 84 84" style="animation:beat 1.6s infinite"><circle cx="16" cy="16" r="13" fill="#2b2b2b"/><circle cx="68" cy="16" r="13" fill="#2b2b2b"/><circle cx="42" cy="46" r="34" fill="#fff"/><circle cx="31" cy="44" r="3.5" fill="#2b2b2b"/><circle cx="53" cy="44" r="3.5" fill="#2b2b2b"/><circle cx="24" cy="54" r="6" fill="#ffa8b8"/><circle cx="60" cy="54" r="6" fill="#ffa8b8"/><path d="M38 54q4 4 8 0" stroke="#2b2b2b" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+<p class="sub">Today is all about you and<br>how special you are to me ♡</p><button class="btn" data-next>Continue →</button></section>
+<section class="s" id="s2"><h2 class="cap">A few reasons<br>why you’re so special</h2><div class="notes" id="notes"></div><p class="sub">Tap a note — it has a secret 💌</p><button class="btn" data-next>There’s more →</button></section>
+<section class="s" id="s3"><h2 class="cap">Our Favorite Memories</h2><p class="sub" id="mh">Tap the heart to reveal</p><svg class="heart" id="hrt" viewBox="0 0 110 100"><path d="M55 95C10 62 0 40 0 25 0 10 12 0 27 0c12 0 22 6 28 16C61 6 71 0 83 0c15 0 27 10 27 25 0 15-10 37-55 70z" fill="#ffc9d3"/><path id="fill" d="M55 95C10 62 0 40 0 25 0 10 12 0 27 0c12 0 22 6 28 16C61 6 71 0 83 0c15 0 27 10 27 25 0 15-10 37-55 70z" fill="#ff6b81" opacity="0"/></svg><div class="stack" id="stack"></div><button class="btn" id="rl" style="display:none" data-next>Read my letter →</button></section>
+<section class="s" id="s4"><h2 class="cap">A little message<br>for you</h2><div class="card"><div class="badge">❤️</div><div id="ty"></div><div class="sig cap" id="sg"></div></div><button class="btn" data-next>One last thing →</button></section>
+<section class="s" id="s5"><h2 class="cap">Thank you for<br>being mine ♡</h2><svg width="min(230px,62vw)" height="150" viewBox="0 0 230 150" id="cpArt"><path d="M10 140Q0 60 50 40Q90 20 130 50Q160 40 190 70Q230 90 215 140Z" fill="#6b3f2a"/><circle cx="85" cy="70" r="36" fill="#ffd9c4"/><path d="M50 60Q60 25 100 30Q125 40 120 70Q95 50 50 60Z" fill="#6b3f2a"/><path d="M68 70q6 5 12 0M96 70q6 5 12 0" stroke="#3a1a1a" fill="none" stroke-width="2.5" stroke-linecap="round"/><circle cx="62" cy="82" r="7" fill="#ffa8a0" opacity=".7"/><circle cx="108" cy="82" r="7" fill="#ffa8a0" opacity=".7"/><circle cx="150" cy="95" r="30" fill="#ffd9c4"/><path d="M122 90Q125 62 155 62Q182 66 178 92Q150 76 122 90Z" fill="#3a2418"/><path d="M138 98q5 4 10 0M158 98q5 4 10 0" stroke="#3a1a1a" fill="none" stroke-width="2.5" stroke-linecap="round"/><path d="M95 150Q110 118 160 122Q205 122 215 150Z" fill="#2b2b2b"/><text x="165" y="35" font-size="30" fill="#e8344f">♥</text><text x="190" y="60" font-size="16" fill="#e8344f">♥</text><text x="10" y="50" font-size="18" fill="#e8344f">♥</text></svg><img class="couple" id="cp" alt="Our photo" style="display:none"><div id="lst" style="display:flex;flex-direction:column;gap:9px"></div><div class="meter" id="mt" style="display:none"><i></i></div><button class="btn" id="hold" style="display:none;user-select:none;touch-action:none">Hold to fill my love meter 💗</button><button class="btn" id="rp" style="display:none">Replay ↺</button></section>
+<script>
+const $=s=>document.querySelector(s),S=[...document.querySelectorAll('.s')];
+const P=new URLSearchParams(window.BF_QS||location.search),SB_URL='https://nznbaqqgkjpmrihhevwa.supabase.co',SB_KEY='sb_publishable_Ty7Ea6FZRyMyc7kut0IYeA_VbD30MWS';
+let D={name:'Handsome',memories:[],couple:'',from:'',message:''},cur=0,music=false,AC,tm,lv=0,holdTimer;
+$('#dots').innerHTML=S.map(()=>'<i></i>').join('');
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function burst(x,y,n=10,set=['💗','✨','💖','🌸','⭐']){for(let i=0;i<n;i++){const e=document.createElement('span');e.className='fx';e.textContent=set[i%set.length];e.style.cssText=`left:${x}px;top:${y}px;--x:${(Math.random()-.5)*220}px;--y:${-40-Math.random()*200}px;--r:${Math.random()*360}deg`;document.body.appendChild(e);setTimeout(()=>e.remove(),1300)}}
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('button'))burst(e.clientX,e.clientY,3)});
+setInterval(()=>{const h=document.createElement('span');h.className='fh';h.textContent='♥';h.style.cssText=`left:${Math.random()*100}%;font-size:${14+Math.random()*25}px;animation-duration:${8+Math.random()*8}s`;$('#bg').appendChild(h);setTimeout(()=>h.remove(),16000)},1000);
+const melody=[523,659,784,659,587,698,880,698,523,659,784,1047,988,784,659,587];let mi=0;
+function tick(){if(!music||!AC)return;const o=AC.createOscillator(),g=AC.createGain();o.type='triangle';o.frequency.value=melody[mi++%melody.length];g.gain.setValueAtTime(.0001,AC.currentTime);g.gain.exponentialRampToValueAtTime(.07,AC.currentTime+.02);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.65);o.connect(g).connect(AC.destination);o.start();o.stop(AC.currentTime+.7);tm=setTimeout(tick,430)}
+function startMusic(){try{const AudioCtx=window.AudioContext||window.webkitAudioContext;if(!AudioCtx){$('#mu').style.opacity=.5;return}music=true;AC=AC||new AudioCtx();AC.resume();$('#mu').style.opacity=1;tick()}catch(e){music=false;$('#mu').style.opacity=.5}}
+$('#mu').onclick=()=>{if(music){music=false;clearTimeout(tm);$('#mu').style.opacity=.5}else startMusic()};
+$('#giftBtn').onclick=()=>$('#openBtn').click();$('#editNames').onclick=()=>{$('#editHis').value=D.name;$('#editFrom').value=D.from;$('#editDlg').classList.add('on')};$('#cancelNames').onclick=()=>$('#editDlg').classList.remove('on');$('#saveNames').onclick=()=>{D.name=$('#editHis').value.trim()||'Handsome';D.from=$('#editFrom').value.trim();$('#hisName').textContent=D.name;$('#gate').querySelector('h2').textContent='A little surprise for '+D.name;try{localStorage.setItem('bf-edit-'+(P.get('wish')||'preview'),JSON.stringify({name:D.name,from:D.from}))}catch(e){}$('#editDlg').classList.remove('on');burst(innerWidth/2,innerHeight/2,8)};$('#editDlg').addEventListener('click',e=>{if(e.target===$('#editDlg'))$('#editDlg').classList.remove('on')});
+function go(i){cur=i;S.forEach((s,k)=>s.classList.toggle('on',k===i));document.querySelectorAll('#dots i').forEach((d,k)=>d.classList.toggle('a',k===i));if(i===1)burst(innerWidth/2,innerHeight/3,16);if(i===2)makeNotes();if(i===3)resetMemories();if(i===4)writeLetter();if(i===5)finalPage();const active=S[i];if(active)active.scrollTop=0}
+document.addEventListener('click',e=>{if(e.target.closest('[data-next]'))go(Math.min(5,cur+1))});
+const colors=['#f9c6cf','#c9defa','#d3e6b8','#fde3a7','#e3d3f3','#f9c6cf'];
+const front=['You always listen','You make me smile','You care so deeply','You support my dreams','You make life brighter','You are simply you'];
+const back=['You remember little things','Your laugh is my favourite','You make me feel safe','You believe in me','Every moment matters','I would choose you again'];
+function makeNotes(){const n=$('#notes');if(n.children.length)return;n.innerHTML='';front.forEach((t,i)=>{const d=document.createElement('div');d.className='note cap';d.style.background=colors[i];d.style.animationDelay=(i*.12)+'s';d.textContent=t;d.dataset.open='0';d.onclick=e=>{d.dataset.open=d.dataset.open==='0'?'1':'0';d.textContent=d.dataset.open==='1'?back[i]:t;burst(e.clientX,e.clientY,5)};n.appendChild(d)})}
+let taps=0,memIndex=0;
+function resetMemories(){taps=0;memIndex=0;$('#fill').setAttribute('opacity','0');$('#hrt').style.display='';$('#stack').style.display='none';$('#stack').innerHTML='';$('#mh').textContent='Tap the heart to reveal';$('#rl').style.display='none'}
+function showMemory(){const stack=$('#stack');if(!Array.isArray(D.memories)||!D.memories.length){$('#mh').textContent='No memory photos were found for this surprise.';return}stack.style.display='block';$('#hrt').style.display='none';$('#mh').textContent='Swipe or tap the photo stack to see every memory 💕';stack.innerHTML='';D.memories.forEach((url,i)=>{const card=document.createElement('div');card.className='pol';card.dataset.index=i;const im=document.createElement('img');im.src=url;im.alt='Memory '+(i+1);im.loading='lazy';const b=document.createElement('b');b.textContent='Memory '+(i+1)+' 💗';card.append(im,b);stack.appendChild(card)});memIndex=0;layoutMemories();$('#rl').style.display='inline-flex'}
+function layoutMemories(){const cards=[...$('#stack').children];cards.forEach((card,i)=>{const pos=(i-memIndex+cards.length)%cards.length;card.style.zIndex=cards.length-pos;card.style.opacity=pos<3?'1':'0';card.style.pointerEvents=pos===0?'auto':'none';card.style.transform=`translateY(${Math.min(pos,3)*5}px) rotate(${pos===0?0:(pos%2?5:-5)}deg) scale(${1-Math.min(pos,3)*.035})`;card.style.visibility=pos<3?'visible':'hidden'})}
+function nextMemory(){const cards=[...$('#stack').children];if(!cards.length)return;memIndex=(memIndex+1)%cards.length;layoutMemories();burst(innerWidth/2,innerHeight/2,4)}
+$('#hrt').onclick=()=>{taps++;$('#fill').setAttribute('opacity',String(Math.min(1,taps/3)));if(taps>=3){showMemory();burst(innerWidth/2,innerHeight/2,18)}};
+$('#stack').onclick=nextMemory;let touchX=0,touchY=0;$('#stack').addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY},{passive:true});$('#stack').addEventListener('touchend',e=>{if(Math.abs(e.changedTouches[0].clientX-touchX)>28||Math.abs(e.changedTouches[0].clientY-touchY)>35){e.preventDefault();nextMemory()}},{passive:false});
+let letterTimer=null;function writeLetter(){if(letterTimer)clearInterval(letterTimer);const el=$('#ty');el.textContent='';$('#sg').textContent='';const msg=D.message||`Hey ${D.name},\n\nThank you for always being there for me, for making me smile, and for all the little things you do that mean so much. You make my days brighter and my life happier. I’m so lucky to have you. Keep being your wonderful self. 💗`;let i=0;letterTimer=setInterval(()=>{el.textContent=msg.slice(0,++i);if(i>=msg.length){clearInterval(letterTimer);letterTimer=null;$('#sg').textContent='I love you always…'+(D.from?' — '+D.from:'');burst(innerWidth/2,innerHeight/2,8)}},18)}
+function finalPage(){const cp=$('#cp');if(D.couple){cp.src=D.couple;cp.style.display='block'}else cp.style.display='none';$('#cpArt').style.display='block';$('#lst').innerHTML='';[['♡','My favourite person'],['⌂','My safe place'],['☺','My happiness']].forEach((x,i)=>{const d=document.createElement('div');d.className='li';d.style.animationDelay=(i*.3)+'s';d.innerHTML='<span>'+x[0]+'</span>'+x[1];$('#lst').appendChild(d)});$('#mt').style.display='block';$('#hold').style.display='block';$('#rp').style.display='none';lv=0;$('#mt i').style.width='0%';$('#hold').textContent='Hold to fill my love meter 💗';burst(innerWidth/2,innerHeight/2,20)}
+function fillMeter(on){clearInterval(holdTimer);if(!on)return;holdTimer=setInterval(()=>{lv=Math.min(100,lv+2);$('#mt i').style.width=lv+'%';if(lv>=100){clearInterval(holdTimer);holdTimer=null;$('#hold').textContent='Infinity% — lots of love! ♾️💗';$('#rp').style.display='inline-flex';for(let i=0;i<4;i++)setTimeout(()=>burst(Math.random()*innerWidth,innerHeight*.5,18),i*250)}},45)}
+$('#hold').addEventListener('pointerdown',e=>{e.preventDefault();fillMeter(true)});['pointerup','pointerleave','pointercancel','lostpointercapture'].forEach(ev=>$('#hold').addEventListener(ev,()=>{clearInterval(holdTimer);holdTimer=null}));
+$('#rp').onclick=()=>{clearInterval(holdTimer);holdTimer=null;lv=0;$('#hold').textContent='Hold to fill my love meter 💗';$('#mt i').style.width='0%';go(0)};
+async function load(){const id=P.get('wish');if(!id){$('#gate').querySelector('p').textContent='This surprise link is incomplete.';$('#openBtn').disabled=true;return}
+try{const r=await fetch(SB_URL+'/rest/v1/birthdays?id=eq.'+encodeURIComponent(id)+'&select=*',{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});const rows=await r.json();if(!r.ok||!rows.length)throw Error('Surprise not found');const row=rows[0];let data={};try{data=JSON.parse(row.image_url||'{}')}catch(e){}D.name=row.name||'Handsome';D.memories=Array.isArray(data.m)?data.m.filter(Boolean):[];D.couple=data.c||'';D.from=data.f||'';D.message=data.t||'';try{const edit=JSON.parse(localStorage.getItem('bf-edit-'+id)||'null');if(edit){D.name=edit.name||D.name;D.from=edit.from||D.from}}catch(e){}$('#hisName').textContent=D.name;$('#gate').querySelector('h2').textContent='A little surprise for '+D.name}
+catch(e){$('#gate').querySelector('h2').textContent='Could not load this surprise';$('#openBtn').disabled=true}}
+$('#openBtn').onclick=()=>{$('#gate').classList.add('off');if(P.get('m')!=='0')startMusic();else $('#mu').style.opacity=.5;go(0)};
+load();
+<\/script></body></html>
+</script>
 <script>
 (function(){
 const $=id=>document.getElementById(id),B=document.body;
@@ -1229,34 +1382,102 @@ const _oc=window.openProjectCategory;window.openProjectCategory=function(c){_oc(
 const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const CH=[['','linear-gradient(135deg,#e91e63,#00a8cc)'],['rose','#e91e63'],['gold','#ff9f1c'],['ocean','#00a8cc'],['mint','#2a9d8f'],['violet','#7c5cff']];
 window.openProjectTarget=function(cat,sub){
- const th=cat==='PARTNER'?'partner':cat==='SIBLING'?'sibling':'friend';
- $('popupBox').className='popup-box theme-'+th;B.classList.add('clean');window._rel=sub.toLowerCase();window._acc='';
- $('popupTitle').textContent='🎂 For your '+sub.toLowerCase();
- $('popupContent').innerHTML=`<div class="nf">
-  <p>Fill in a few details and get a magical surprise link.</p>
-  <label>Their name</label><input type="text" id="gfName" placeholder="e.g. Lucy" autocomplete="off">
-  <div class="two"><div><label>Month</label><select id="gfMonth"><option value="">Select</option>${MON.map(m=>'<option>'+m+'</option>').join('')}</select></div><div><label>Day</label><input type="number" id="gfDay" min="1" max="31" placeholder="8"></div></div>
-  <label>Photo</label><label class="drop"><span class="ic"><i class="fas fa-camera"></i></span><img id="gfPrev" alt=""><span><b id="gfFn">Choose a photo</b><small>Square photos look best</small></span><input type="file" id="gfPhoto" accept="image/*" hidden></label>
-  <label>From (optional)</label><input type="text" id="gfFrom" placeholder="Your name" maxlength="30">
-  <label>Your message (optional)</label><textarea id="gfMsg" rows="3" maxlength="280" placeholder="Write something from the heart…"></textarea>
-  <label>Style</label><div class="chips" id="gfChips">${CH.map((c,k)=>'<div class="chip'+(k?'':' on')+'" data-c="'+c[0]+'" style="background:'+c[1]+'"></div>').join('')}</div>
-  <div class="sw"><span>🎵 Birthday music</span><label class="tg"><input type="checkbox" id="gfMusic" checked><i></i></label></div>
-  <button class="gen" id="btnGfWish" onclick="generateGFWish('${cat}')"><i class="fas fa-wand-magic-sparkles"></i> Create wish link</button>
-  <div id="gfResult" class="res" style="display:none"><p style="margin-bottom:8px">Your link is ready 🎉</p><input type="text" id="gfLink" readonly onclick="this.select()">
-   <div class="rb"><button type="button" id="gfCopyBtn" onclick="copyWishLink()"><i class="fas fa-copy"></i> Copy</button><button type="button" onclick="previewWishLink()"><i class="fas fa-eye"></i> Preview</button></div></div>
-  <div class="back-btn-menu" onclick="openProjectCategory('${cat}')"><i class="fas fa-arrow-left"></i> Back</div></div>`;
- $('gfChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;[...$('gfChips').children].forEach(x=>x.classList.remove('on'));c.classList.add('on');window._acc=c.dataset.c};
- $('gfPhoto').onchange=()=>{const f=$('gfPhoto').files[0];if(!f)return;$('gfFn').textContent=f.name;const p=$('gfPrev');p.src=URL.createObjectURL(f);p.style.display='block';document.querySelector('.drop .ic').style.display='none'};
- try{playBeep(700,'sine',.05)}catch(e){}
-};
+  const th=cat==='PARTNER'?'partner':cat==='SIBLING'?'sibling':'friend';
+  $('popupBox').className='popup-box theme-'+th;B.classList.add('clean');window._rel=sub.toLowerCase();window._acc='';
+  $('popupTitle').textContent=sub==='BOYFRIEND'?'💗 Create a Happy Handsome surprise':'🎂 For your '+sub.toLowerCase();
+  if(cat==='PARTNER' && sub==='BOYFRIEND'){
+    $('popupContent').innerHTML=`<div class="nf">
+      <p>Create a sweet, personal surprise page for him.</p>
+      <label>His name (optional)</label><input type="text" id="bfName" placeholder="Handsome" maxlength="40" autocomplete="off">
+      <label>Our memories <span style="color:#e91e63">· at least 2 photos</span></label>
+      <label class="drop" for="bfMemoryInput"><span class="ic"><i class="fas fa-images"></i></span><span><b>Choose memory photos</b><small>Add 2 or more photos; add more anytime</small></span></label>
+      <input type="file" id="bfMemoryInput" accept="image/*" multiple hidden>
+      <div class="photo-grid" id="bfMemoryGrid"></div><button type="button" class="add-more" id="bfAddMore"><i class="fas fa-plus"></i> Add more photos</button>
+      <div class="bf-status" id="bfMemoryCount">0 photos selected</div>
+      <label>Couple photo (optional)</label><label class="drop" for="bfCoupleInput"><span class="ic"><i class="fas fa-heart"></i></span><img id="bfCouplePreview" alt=""><span><b id="bfCoupleName">Choose one couple photo</b><small>Optional · shown on the last page</small></span></label>
+      <input type="file" id="bfCoupleInput" accept="image/*" hidden>
+      <label>From (optional)</label><input type="text" id="bfFrom" placeholder="Your name" maxlength="30">
+      <label>Your message (optional)</label><textarea id="bfMsg" rows="3" maxlength="600" placeholder="Write something from the heart…"></textarea>
+      <div class="sw"><span>🎵 Surprise music</span><label class="tg"><input type="checkbox" id="bfMusic" checked><i></i></label></div>
+      <button class="gen" id="btnGfWish" type="button"><i class="fas fa-link"></i> Generate Link</button>
+      <div class="bf-status" id="bfUploadStatus" aria-live="polite"></div>
+      <div id="gfResult" class="res" style="display:none"><p style="margin-bottom:8px">Your Happy Handsome link is ready 💗</p><input type="text" id="gfLink" readonly onclick="this.select()"><div class="rb"><button type="button" id="gfCopyBtn" onclick="copyWishLink()"><i class="fas fa-copy"></i> Copy</button><button type="button" onclick="previewWishLink()"><i class="fas fa-eye"></i> Preview</button></div></div>
+      <div class="back-btn-menu" onclick="openProjectCategory('${cat}')"><i class="fas fa-arrow-left"></i> Back</div></div>`;
+    const memoryInput=$('bfMemoryInput'),coupleInput=$('bfCoupleInput'),grid=$('bfMemoryGrid');
+    let memories=[],coupleFile=null;
+    function renderMemoryPreviews(){
+      grid.innerHTML='';
+      memories.forEach((file,index)=>{const wrap=document.createElement('div');wrap.className='photo-thumb';const im=document.createElement('img');im.src=URL.createObjectURL(file);im.alt='Memory '+(index+1);const rm=document.createElement('button');rm.type='button';rm.textContent='×';rm.setAttribute('aria-label','Remove photo '+(index+1));rm.onclick=()=>{memories.splice(index,1);renderMemoryPreviews()};wrap.append(im,rm);grid.appendChild(wrap)});
+      $('bfMemoryCount').textContent=memories.length+' photo'+(memories.length===1?'':'s')+' selected';
+    }
+    function addMemoryFiles(list){const files=[...list].filter(f=>f.type.startsWith('image/'));if(files.length){memories.push(...files);renderMemoryPreviews()}memoryInput.value=''}
+    memoryInput.onchange=()=>addMemoryFiles(memoryInput.files);
+    $('bfAddMore').onclick=()=>memoryInput.click();
+    coupleInput.onchange=()=>{coupleFile=coupleInput.files[0]||null;if(coupleFile){$('bfCoupleName').textContent=coupleFile.name;$('bfCouplePreview').src=URL.createObjectURL(coupleFile);$('bfCouplePreview').style.display='block';coupleInput.value=''}};
+    $('btnGfWish').onclick=async()=>{
+      const btn=$('btnGfWish'),status=$('bfUploadStatus'),name=$('bfName').value.trim()||'Handsome';
+      if(memories.length<2){status.textContent='Please add at least 2 memory photos.';return}
+      btn.disabled=true;status.textContent='Preparing your photos…';btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Uploading photos…';
+      try{
+        const resizeImage=async(file)=>{
+          const bitmap=await createImageBitmap(file);const scale=Math.min(1,1280/Math.max(bitmap.width,bitmap.height));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));canvas.getContext('2d').drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close?.();
+          const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Image processing failed')),'image/jpeg',.85));return blob;
+        };
+        const uploadOne=async(file,index)=>{
+          const blob=await resizeImage(file);const path='bf_'+Date.now()+'_'+index+'_'+Math.random().toString(36).slice(2)+'.jpg';
+          const {error}=await sb.storage.from('photos').upload(path,blob,{contentType:'image/jpeg',upsert:false});if(error)throw error;
+          const {data}=sb.storage.from('photos').getPublicUrl(path);return data.publicUrl;
+        };
+        const memoryUrls=[];
+        for(let i=0;i<memories.length;i++){status.textContent='Uploading memory '+(i+1)+' of '+memories.length+'…';memoryUrls.push(await uploadOne(memories[i],i))}
+        let coupleUrl='';if(coupleFile){status.textContent='Uploading couple photo…';coupleUrl=await uploadOne(coupleFile,'couple')}
+        status.textContent='Creating your surprise page…';
+        const payload={m:memoryUrls,c:coupleUrl,f:$('bfFrom').value.trim(),t:$('bfMsg').value.trim()};
+        const {data:dbData,error:dbError}=await sb.from('birthdays').insert([{name:name,month:'Boyfriend Day',day:'1',image_url:JSON.stringify(payload)}]).select();
+        if(dbError)throw dbError;
+        const baseUrl=window.location.origin+window.location.pathname;
+        const finalUrl=baseUrl+'?wish='+encodeURIComponent(dbData[0].id)+'&type=partner&rel=boyfriend'+(!$('bfMusic').checked?'&m=0':'');
+        $('gfLink').value=finalUrl;$('gfResult').style.display='block';$('gfResult').scrollIntoView({behavior:'smooth',block:'center'});
+        status.textContent='Done! Your surprise page is ready.';btn.innerHTML='<i class="fas fa-check"></i> Page generated';try{playChime()}catch(e){}
+      }catch(error){console.error(error);status.textContent='Upload failed: '+(error.message||'Please try again.');btn.disabled=false;btn.innerHTML='<i class="fas fa-link"></i> Generate Link'}
+    };
+  }else{
+    $('popupContent').innerHTML=`<div class="nf">
+     <p>Fill in a few details and get a magical surprise link.</p>
+     <label>Their name</label><input type="text" id="gfName" placeholder="e.g. Lucy" autocomplete="off">
+     <div class="two"><div><label>Month</label><select id="gfMonth"><option value="">Select</option>${MON.map(m=>'<option>'+m+'</option>').join('')}</select></div><div><label>Day</label><input type="number" id="gfDay" min="1" max="31" placeholder="8"></div></div>
+     <label>Photo</label><label class="drop"><span class="ic"><i class="fas fa-camera"></i></span><img id="gfPrev" alt=""><span><b id="gfFn">Choose photos</b><small>Select as many photos as you want in one go</small></span><input type="file" id="gfPhoto" accept="image/*" multiple hidden></label>
+     <label>From (optional)</label><input type="text" id="gfFrom" placeholder="Your name" maxlength="30">
+     <label>Your message (optional)</label><textarea id="gfMsg" rows="3" maxlength="280" placeholder="Write something from the heart…"></textarea>
+     <label>Style</label><div class="chips" id="gfChips">${CH.map((c,k)=>'<div class="chip'+(k?'':' on')+'" data-c="'+c[0]+'" style="background:'+c[1]+'"></div>').join('')}</div>
+     <div class="sw"><span>🎵 Birthday music</span><label class="tg"><input type="checkbox" id="gfMusic" checked><i></i></label></div>
+     <button class="gen" id="btnGfWish" onclick="generateGFWish('${cat}')"><i class="fas fa-link"></i> Generate Link</button>
+     <div id="gfResult" class="res" style="display:none"><p style="margin-bottom:8px">Your link is ready 🎉</p><input type="text" id="gfLink" readonly onclick="this.select()"><div class="rb"><button type="button" id="gfCopyBtn" onclick="copyWishLink()">Copy</button><button type="button" onclick="previewWishLink()">Preview</button></div></div>
+     <div class="back-btn-menu" onclick="openProjectCategory('${cat}')"><i class="fas fa-arrow-left"></i> Back</div></div>`;
+    $('gfChips').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;[...$('gfChips').children].forEach(x=>x.classList.remove('on'));c.classList.add('on');window._acc=c.dataset.c};
+    $('gfPhoto').onchange=()=>{const files=[...$('gfPhoto').files];if(!files.length)return;$('gfFn').textContent=files.length+' photo'+(files.length===1?'':'s')+' selected';const p=$('gfPrev');p.src=URL.createObjectURL(files[0]);p.style.display='block';document.querySelector('.drop .ic').style.display='none'};
+  }
+  try{playBeep(700,'sine',.05)}catch(e){}
+ };
 window.extraParams=function(){let s='';const f=$('gfFrom').value.trim(),m=$('gfMsg').value.trim();if(f)s+='&from='+encodeURIComponent(f);if(m)s+='&msg='+encodeURIComponent(m);if(window._acc)s+='&c='+window._acc;if(!$('gfMusic').checked)s+='&m=0';if(window._rel)s+='&rel='+window._rel;return s};
 window.mountWish=function(){
- B.classList.add('clean');document.title='A Birthday Surprise 🎁';
- const js=v=>JSON.stringify(v).replace(/</g,'\\u003c');
- const inj='<script>window.QS='+js(location.search)+';window.PAGE_URL='+js(location.href)+';window.PAGE_BASE='+js(location.origin+location.pathname)+';<\/script>';
- const h=$('wishTpl').textContent.replace(/<\\\/script>/g,'<'+'/script>').replace('<head>',()=>'<head>'+inj);
- const f=document.createElement('iframe');f.setAttribute('allow','autoplay; microphone; fullscreen');
- f.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:20000;background:#fff';f.srcdoc=h;B.appendChild(f);
+  B.classList.add('clean');
+  const params=new URLSearchParams(location.search);
+  const js=v=>JSON.stringify(v).replace(/</g,'\\u003c');
+  const f=document.createElement('iframe');f.setAttribute('allow','autoplay; microphone; fullscreen');
+  f.style.cssText='position:fixed;inset:0;width:100%;height:100%;border:0;z-index:20000;background:#ffeedd';
+  if(params.get('rel')==='boyfriend'){
+    document.title='Happy Handsome 💗';
+    const inj='<script>window.BF_QS='+js(location.search)+';<\/script>';
+    const h=$('bfTpl').textContent.replace(/<\\\/script>/g,'<'+'/script>').replace('<head>',()=>'<head>'+inj);
+    f.srcdoc=h;
+  }else{
+    document.title='A Birthday Surprise 🎁';
+    const inj='<script>window.QS='+js(location.search)+';window.PAGE_URL='+js(location.href)+';window.PAGE_BASE='+js(location.origin+location.pathname)+';<\/script>';
+    const h=$('wishTpl').textContent.replace(/<\\\/script>/g,'<'+'/script>').replace('<head>',()=>'<head>'+inj);
+    f.srcdoc=h;
+  }
+  B.appendChild(f);
 };
 })();
 </script>
