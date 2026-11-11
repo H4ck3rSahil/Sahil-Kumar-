@@ -432,6 +432,16 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
 .nf .bf-status{font:500 12px 'Poppins',sans-serif;color:#9a8aa3;margin-top:8px}
 
 </style>
+
+<style id="projectWebsiteStyles">
+#projectWebsiteLayer{position:fixed;inset:0;z-index:100000;display:none;flex-direction:column;background:#fff;color:#111;font-family:Arial,sans-serif}
+#projectWebsiteLayer.active{display:flex}
+.project-website-toolbar{height:54px;min-height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;background:#10151d;color:#9effb4;border-bottom:1px solid #263b30;box-sizing:border-box}
+.project-website-toolbar span{font-size:12px;font-weight:700;letter-spacing:1px}
+.project-website-toolbar button{border:1px solid #4a6655;border-radius:8px;background:#17251d;color:#d9ffe2;padding:9px 12px;font-size:11px;font-weight:700;cursor:pointer}
+#projectWebsiteFrame{display:block;flex:1;width:100%;height:calc(100% - 54px);border:0;background:#fff}
+@media(max-width:480px){.project-website-toolbar{height:50px;min-height:50px;padding:0 9px}.project-website-toolbar span{font-size:10px}.project-website-toolbar button{padding:8px 9px;font-size:10px}}
+</style>
 </head>
 <body>
 
@@ -510,7 +520,7 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
         <p class="menu-sub">SELECT A MODULE</p>
       </div>
       <div class="menu-buttons">
-        <button class="menu-btn" onclick="openPopup('project')"><span>PROJECT</span> <i class="fas fa-chevron-right"></i></button>
+        <button class="menu-btn" onclick="openProjectWebsite()"><span>PROJECT</span> <i class="fas fa-chevron-right"></i></button>
         <button class="menu-btn" onclick="openPopup('tools')"><span>COMMANDS</span> <i class="fas fa-chevron-right"></i></button>
         <button class="menu-btn" onclick="openPopup('services')"><span>FILES</span> <i class="fas fa-chevron-right"></i></button>
         <button class="menu-btn" onclick="openPopup('about')"><span>INTRODUCTION</span> <i class="fas fa-chevron-right"></i></button>
@@ -528,6 +538,15 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
     <h2 id="popupTitle" class="inner-title">TITLE</h2>
     <div id="popupContent" class="content-panel"></div>
   </div>
+</div>
+
+<!-- PROJECT WEBSITE: bundled Meow Webpages source -->
+<div id="projectWebsiteLayer" aria-hidden="true">
+  <div class="project-website-toolbar">
+    <span><i class="fas fa-folder-open"></i> PROJECT // WEBSITE</span>
+    <button type="button" onclick="closeProjectWebsite()" aria-label="Back to mainframe"><i class="fas fa-arrow-left"></i> BACK TO MAINFRAME</button>
+  </div>
+  <iframe id="projectWebsiteFrame" src="about:blank" title="Project Website" loading="eager" allow="clipboard-read; clipboard-write; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe>
 </div>
 
 <!-- 6. TOOL CODE MODAL -->
@@ -746,6 +765,29 @@ const contentData = {
   services: { title: "SERVICE_PROTOCOLS", html: `<p>Executing offensive security operations and vulnerability assessments.</p><div class="sys-divider"></div><p><strong>[01] WEB APP PENTESTING:</strong> Comprehensive security audits of web applications, identifying OWASP Top 10 vulnerabilities.</p><p><strong>[02] NETWORK PENTESTING:</strong> Internal and external network vulnerability assessments and pivot testing.</p><p><strong>[03] OSINT & RECON:</strong> Deep intelligence gathering and attack surface mapping for red team operations.</p>` },
   contact: { title: "SECURE_COMMS", html: `<p>Establish an encrypted connection to discuss operations or collaborations.</p><div class="comms-list"><a href="https://www.instagram.com/h4ck3rsahil/" target="_blank" class="comms-link"><i class="fab fa-instagram" style="color:var(--secondary);"></i> @h4ck3rsahil</a><a href="https://www.youtube.com/@h4ck3rsahil" target="_blank" class="comms-link"><i class="fab fa-youtube" style="color:var(--danger);"></i> @h4ck3rsahil</a><a href="mailto:sahillbhardwaj002@gmail.com" class="comms-link"><i class="fas fa-envelope" style="color:var(--primary);"></i> sahillbhardwaj002@gmail.com</a></div>` }
 };
+
+function openProjectWebsite() {
+  const layer = document.getElementById('projectWebsiteLayer');
+  const frame = document.getElementById('projectWebsiteFrame');
+  if (!layer || !frame) return;
+  // Load the bundled site only when PROJECT is opened.
+  if (frame.getAttribute('src') === 'about:blank') frame.src = 'project-site/index.html';
+  layer.classList.add('active');
+  layer.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProjectWebsite() {
+  const layer = document.getElementById('projectWebsiteLayer');
+  if (!layer) return;
+  layer.classList.remove('active');
+  layer.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') closeProjectWebsite();
+});
 
 function openProjectCategory(category) {
   // Reset theme to default hack green when viewing categories
