@@ -433,13 +433,6 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
 
 </style>
 
-<style id="meow-project-connection-style">
-#meowProjectOverlay{position:fixed;inset:0;z-index:999999;display:none;background:#080b12}
-#meowProjectOverlay.active{display:block}
-#meowProjectFrame{width:100%;height:100%;border:0;background:#fff;display:block}
-#meowProjectClose{position:absolute;top:12px;right:12px;z-index:2;width:42px;height:42px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(15,18,28,.88);color:#fff;font-size:26px;line-height:1;cursor:pointer;box-shadow:0 4px 18px #0005}
-#meowProjectClose:focus{outline:2px solid #fff;outline-offset:3px}
-</style>
 </head>
 <body>
 
@@ -518,7 +511,7 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
         <p class="menu-sub">SELECT A MODULE</p>
       </div>
       <div class="menu-buttons">
-        <button class="menu-btn" onclick="openPopup('project')"><span>PROJECT</span> <i class="fas fa-chevron-right"></i></button>
+        <button class="menu-btn" onclick="openProjectPage()"><span>PROJECT</span> <i class="fas fa-chevron-right"></i></button>
         <button class="menu-btn" onclick="openPopup('tools')"><span>COMMANDS</span> <i class="fas fa-chevron-right"></i></button>
         <button class="menu-btn" onclick="openPopup('services')"><span>FILES</span> <i class="fas fa-chevron-right"></i></button>
         <button class="menu-btn" onclick="openPopup('about')"><span>INTRODUCTION</span> <i class="fas fa-chevron-right"></i></button>
@@ -1241,34 +1234,6 @@ WS.forEach((t,i)=>{const b=document.createElement('button');b.className='bln';b.
 load();
 <\/script>
 
-<div id="meowProjectOverlay" aria-hidden="true">
-  <button id="meowProjectClose" type="button" aria-label="Back to dashboard" title="Back to dashboard">×</button>
-  <iframe id="meowProjectFrame" title="Meow Webpages" src="about:blank" loading="eager"></iframe>
-</div>
-<script id="meow-project-connection-script">
-(function(){
-  const overlay=document.getElementById('meowProjectOverlay');
-  const frame=document.getElementById('meowProjectFrame');
-  const close=document.getElementById('meowProjectClose');
-  if(!overlay||!frame||!close)return;
-  function openMeowProject(){
-    if(!frame.src || frame.getAttribute('src')==='about:blank') frame.src='project-site/index.html';
-    overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false');
-    document.body.style.overflow='hidden';
-  }
-  function closeMeowProject(){
-    overlay.classList.remove('active'); overlay.setAttribute('aria-hidden','true');
-    document.body.style.overflow='';
-  }
-  const oldOpenPopup=window.openPopup;
-  window.openPopup=function(key,...args){
-    if(key==='project'){openMeowProject();return;}
-    if(typeof oldOpenPopup==='function')return oldOpenPopup.apply(this,[key,...args]);
-  };
-  close.addEventListener('click',closeMeowProject);
-  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('active'))closeMeowProject();});
-})();
-</script>
 
 </body>
 </html>
@@ -1539,6 +1504,38 @@ window.mountWish=function(){
     #introductionEmbedBack { min-height:40px; padding:9px 13px; font-size:12px; }
   }
 </style>
+<style id="project-embed-styles">
+  #projectEmbed {
+    position: fixed; inset: 0; z-index: 15001; display: none;
+    background: #fff; isolation: isolate;
+  }
+  #projectEmbed.is-open { display: block; }
+  #projectEmbedFrame {
+    display: block; width: 100%; height: 100%; border: 0; background: #fff;
+  }
+  #projectEmbedBack {
+    position: absolute; z-index: 2; top: max(12px, env(safe-area-inset-top));
+    left: max(12px, env(safe-area-inset-left)); display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px; min-height: 42px;
+    padding: 10px 16px; border: 1px solid rgba(255,255,255,.24);
+    border-radius: 999px; background: rgba(12,12,18,.88); color: #fff;
+    font: 700 13px/1.2 system-ui,sans-serif; letter-spacing: .03em;
+    box-shadow: 0 5px 22px rgba(0,0,0,.25); cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #projectEmbedBack:focus-visible { outline: 3px solid #00ff41; outline-offset: 3px; }
+  @media(max-width:600px) {
+    #projectEmbedBack { min-height: 40px; padding: 9px 13px; font-size: 12px; }
+  }
+</style>
+<div id="projectEmbed" aria-hidden="true">
+  <button id="projectEmbedBack" type="button" aria-label="Back to main dashboard">
+    <span aria-hidden="true">←</span> BACK TO DASHBOARD
+  </button>
+  <iframe id="projectEmbedFrame" title="Projects" loading="eager"
+    allow="autoplay; fullscreen; clipboard-read; clipboard-write"
+    referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
 <div id="introductionEmbed" aria-hidden="true">
   <button id="introductionEmbedBack" type="button" aria-label="Back to main dashboard">
     <span aria-hidden="true">←</span> BACK TO DASHBOARD
@@ -1547,6 +1544,43 @@ window.mountWish=function(){
     allow="autoplay; fullscreen; clipboard-read; clipboard-write"
     referrerpolicy="strict-origin-when-cross-origin"></iframe>
 </div>
+<script>
+(function () {
+  "use strict";
+  const overlay = document.getElementById("projectEmbed");
+  const frame = document.getElementById("projectEmbedFrame");
+  const back = document.getElementById("projectEmbedBack");
+  if (!overlay || !frame || !back) return;
+
+  let previousOverflow = "";
+  let projectLoaded = false;
+
+  window.openProjectPage = function () {
+    if (!projectLoaded) {
+      frame.src = "project.html";
+      projectLoaded = true;
+    }
+    previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden", "false");
+    back.focus({ preventScroll: true });
+  };
+
+  function closeProjectPage() {
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = previousOverflow;
+  }
+
+  back.addEventListener("click", closeProjectPage);
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && overlay.classList.contains("is-open")) {
+      closeProjectPage();
+    }
+  });
+})();
+</script>
 <script>
 (function () {
   "use strict";
