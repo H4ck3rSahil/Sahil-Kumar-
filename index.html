@@ -432,6 +432,14 @@ body.clean #popupBox .back-btn-menu{color:#9a8aa3!important;font:500 13px 'Poppi
 .nf .bf-status{font:500 12px 'Poppins',sans-serif;color:#9a8aa3;margin-top:8px}
 
 </style>
+
+<style id="meow-project-connection-style">
+#meowProjectOverlay{position:fixed;inset:0;z-index:999999;display:none;background:#080b12}
+#meowProjectOverlay.active{display:block}
+#meowProjectFrame{width:100%;height:100%;border:0;background:#fff;display:block}
+#meowProjectClose{position:absolute;top:12px;right:12px;z-index:2;width:42px;height:42px;border:1px solid rgba(255,255,255,.35);border-radius:50%;background:rgba(15,18,28,.88);color:#fff;font-size:26px;line-height:1;cursor:pointer;box-shadow:0 4px 18px #0005}
+#meowProjectClose:focus{outline:2px solid #fff;outline-offset:3px}
+</style>
 </head>
 <body>
 
@@ -1232,6 +1240,36 @@ WS.forEach((t,i)=>{const b=document.createElement('button');b.className='bln';b.
  b.onclick=()=>{const r=b.getBoundingClientRect();burst(r.left+26,r.top+30,28);pop();b.remove();const s=document.createElement('span');s.textContent=T.em[i%T.em.length]+' '+t;$('wl').appendChild(s);$('cnt').textContent=++popped+'/8';if(popped===8){chime();confetti(120)}};$('bz').appendChild(b)});
 load();
 <\/script>
+
+<div id="meowProjectOverlay" aria-hidden="true">
+  <button id="meowProjectClose" type="button" aria-label="Back to dashboard" title="Back to dashboard">×</button>
+  <iframe id="meowProjectFrame" title="Meow Webpages" src="about:blank" loading="eager"></iframe>
+</div>
+<script id="meow-project-connection-script">
+(function(){
+  const overlay=document.getElementById('meowProjectOverlay');
+  const frame=document.getElementById('meowProjectFrame');
+  const close=document.getElementById('meowProjectClose');
+  if(!overlay||!frame||!close)return;
+  function openMeowProject(){
+    if(!frame.src || frame.getAttribute('src')==='about:blank') frame.src='project-site/index.html';
+    overlay.classList.add('active'); overlay.setAttribute('aria-hidden','false');
+    document.body.style.overflow='hidden';
+  }
+  function closeMeowProject(){
+    overlay.classList.remove('active'); overlay.setAttribute('aria-hidden','true');
+    document.body.style.overflow='';
+  }
+  const oldOpenPopup=window.openPopup;
+  window.openPopup=function(key,...args){
+    if(key==='project'){openMeowProject();return;}
+    if(typeof oldOpenPopup==='function')return oldOpenPopup.apply(this,[key,...args]);
+  };
+  close.addEventListener('click',closeMeowProject);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&overlay.classList.contains('active'))closeMeowProject();});
+})();
+</script>
+
 </body>
 </html>
 </script>
