@@ -450,17 +450,43 @@ function viewBase(){
   var projectRoot=at>=0?path.slice(0,at):path.replace(/\/$/,"");
   return location.origin+projectRoot+"/site/view.html";
 }
-window.MW_SAVE=window.MW_SAVE||function(full){
-  var vals=JSON.parse(JSON.stringify(full.values)),keys=[],jobs=[];
+function bytesToB64Url(bytes){
+  var bin="";
+  for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+async function encryptPageHtml(html,pass){
+  if(!window.crypto||!crypto.subtle)throw new Error("Secure encryption needs HTTPS. Open this page through GitHub Pages.");
+  var enc=new TextEncoder(),salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));
+  var material=await crypto.subtle.importKey("raw",enc.encode(pass),"PBKDF2",false,["deriveKey"]);
+  var key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:250000,hash:"SHA-256"},material,{name:"AES-GCM",length:256},false,["encrypt"]);
+  var cipher=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},key,enc.encode(JSON.stringify({html:html})));
+  return {secure:"v1",salt:bytesToB64Url(salt),iv:bytesToB64Url(iv),cipher:bytesToB64Url(new Uint8Array(cipher))};
+}
+function buildShareHtml(){
+  drawPreview();
+  var content=$("phone").innerHTML;
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#6d28d9"><title>'+esc(title)+'</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"><style>*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:linear-gradient(145deg,#f7f5ff,#fce7f3);color:#1b1736}.stage{min-height:100svh;padding:24px 14px;display:flex;justify-content:center;align-items:flex-start}.phone{width:min(100%,520px);background:#fff;border:1px solid #e7e3f5;border-radius:28px;overflow:hidden;box-shadow:0 14px 40px rgba(80,50,160,.14)}.pv-hero{min-height:360px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:26px 22px;color:#fff;background:linear-gradient(160deg,#4c1d95,#be185d);background-size:cover;background-position:center}.pv-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(10,5,30,.78),rgba(10,5,30,.1) 70%)}.pv-hero>*{position:relative}.pv-tag{align-self:flex-start;font-size:11.5px;letter-spacing:.14em;font-weight:800;padding:6px 12px;border-radius:999px;background:#ffffff30;margin-bottom:12px}.pv-hero h2{font-size:30px;line-height:1.12;margin:0}.pv-hero p{margin-top:10px;font-size:15.5px;line-height:1.45}.pv-by{margin-top:14px;font-size:13px;opacity:.85}.pv-sec{padding:22px;border-top:1px solid #e7e3f5}.pv-sec h3{font-size:12px;letter-spacing:.14em;color:#6d28d9;font-weight:800;text-transform:uppercase;margin:0 0 10px}.pv-sec p{font-size:16px;line-height:1.55;margin:8px 0;white-space:pre-wrap}.pv-sec .k{font-weight:800;font-size:19px}.pv-sec img{width:100%;border-radius:16px;margin-top:12px;display:block;object-fit:cover}</style></head><body><main class="stage"><article class="phone">'+content+'</article></main></body></html>';
+}
+/* Save an encrypted page record. The viewer fetches only ciphertext and decrypts it locally. */
+window.MW_SAVE=async function(full){
+  var vals=JSON.parse(JSON.stringify(full.values)),keys=[];
   Object.keys(vals).forEach(function(k){if(/^data:image\//.test(vals[k]))keys.push(k)});
-  keys.forEach(function(k,i){jobs.push(sbUpload(vals[k],i).then(function(u){vals[k]=u}))});
-  return Promise.all(jobs).then(function(){
-    var body={name:vals.name||vals.nm||full.title,month:"Custom Page",day:full.slug,
-      image_url:JSON.stringify({tpl:full.slug,title:full.title,cat:full.category,v:vals,s:schema.map(function(s){return {n:s.n,f:s.f.map(function(f){return {k:f.k,l:f.l,t:f.t}})}})})};
-    return fetch(SB_URL+"/rest/v1/birthdays",{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify([body])})
-     .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error("Save failed: "+t)});return r.json()})
-     .then(function(rows){return viewBase()+"?id="+encodeURIComponent(rows[0].id)});
-  });
+  for(var i=0;i<keys.length;i++){
+    var k=keys[i];
+    vals[k]=await sbUpload(vals[k],i);
+    S[k]=vals[k];
+  }
+  var pass=String(vals.pass||"");
+  if(!/^\d{4}$/.test(pass))throw new Error("Passcode must be exactly 4 digits.");
+  var html=buildShareHtml();
+  var encrypted=await encryptPageHtml(html,pass);
+  var body={name:vals.name||vals.nm||full.title,month:"Custom Page",day:full.slug,image_url:JSON.stringify(encrypted)};
+  var response=await fetch(SB_URL+"/rest/v1/birthdays",{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify([body])});
+  if(!response.ok)throw new Error("Save failed: "+await response.text());
+  var rows=await response.json();
+  if(!rows||!rows[0]||!rows[0].id)throw new Error("Database did not return a page ID.");
+  return viewBase()+"?id="+encodeURIComponent(rows[0].id);
 };
 var lastLink="",lastJson="";
 $("create").onclick=function(){

@@ -7,47 +7,73 @@
 <meta name="theme-color" content="#171329">
 <title>Secure Access · Sahil's Project</title>
 <style>
-:root{color-scheme:dark;--bg:#100d1c;--card:#1b1730;--line:#393052;--accent:#a78bfa;--text:#f7f4ff;--muted:#b9b1cc;--danger:#ff8d9b}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 50% 0%,#34245d 0,transparent 55%),linear-gradient(145deg,#100d1c,#171329 65%,#21163b);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}.card{width:min(100%,430px);padding:34px 26px;border:1px solid var(--line);border-radius:25px;background:#1b1730ed;box-shadow:0 24px 80px #0008;text-align:center}.logo{width:58px;height:58px;margin:0 auto 18px;border-radius:19px;display:grid;place-items:center;background:linear-gradient(135deg,#a78bfa,#7c3aed);font-size:27px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}h1{margin:8px 0;font-size:29px;letter-spacing:-.04em}p{color:var(--muted);line-height:1.6;margin:9px 0 22px}.field{text-align:left;margin:22px 0 14px}label{display:block;margin:0 0 8px;font-size:13px;font-weight:700;color:#e7e0f7}input{width:100%;height:53px;border:1px solid #51456e;border-radius:13px;background:#100d1c;color:white;padding:0 15px;font-size:17px;outline:none}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #a78bfa24}button{width:100%;height:52px;border:0;border-radius:13px;background:linear-gradient(100deg,#a78bfa,#8b5cf6);color:#170e2a;font-weight:850;font-size:15px;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.error{min-height:22px;color:var(--danger);font-size:13px;margin:12px 0 0}.foot{font-size:11px;color:#8f86a5;margin:23px 0 0}.hidden{display:none!important}#page{position:fixed;inset:0;background:white;z-index:3}#page iframe{width:100%;height:100%;border:0;background:white}#closePage{position:fixed;right:14px;top:14px;z-index:4;width:auto;height:40px;padding:0 14px;background:#201936;color:white;border:1px solid #ffffff44;border-radius:11px}
+:root{color-scheme:dark;--bg:#100d1c;--card:#1b1730;--line:#393052;--accent:#a78bfa;--text:#f7f4ff;--muted:#b9b1cc;--danger:#ff8d9b}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 50% 0%,#34245d 0,transparent 55%),linear-gradient(145deg,#100d1c,#171329 65%,#21163b);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}
+.card{width:min(100%,430px);padding:34px 26px;border:1px solid var(--line);border-radius:25px;background:#1b1730ed;box-shadow:0 24px 80px #0008;text-align:center}.logo{width:58px;height:58px;margin:0 auto 18px;border-radius:19px;display:grid;place-items:center;background:linear-gradient(135deg,#a78bfa,#7c3aed);font-size:27px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}h1{margin:8px 0;font-size:29px;letter-spacing:-.04em}p{color:var(--muted);line-height:1.6;margin:9px 0 22px}.field{text-align:left;margin:22px 0 14px}label{display:block;margin:0 0 8px;font-size:13px;font-weight:700;color:#e7e0f7}input{width:100%;height:53px;border:1px solid #51456e;border-radius:13px;background:#100d1c;color:white;padding:0 15px;font-size:17px;outline:none;letter-spacing:.3em}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #a78bfa24}button{width:100%;height:52px;border:0;border-radius:13px;background:linear-gradient(100deg,#a78bfa,#8b5cf6);color:#170e2a;font-weight:850;font-size:15px;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.error{min-height:22px;color:var(--danger);font-size:13px;margin:12px 0 0}.foot{font-size:11px;color:#8f86a5;margin:23px 0 0}.hidden{display:none!important}#page{position:fixed;inset:0;background:white;z-index:3}#page iframe{width:100%;height:100%;border:0;background:white}#closePage{position:fixed;right:14px;top:14px;z-index:4;width:auto;height:40px;padding:0 14px;background:#201936;color:white;border:1px solid #ffffff44;border-radius:11px}
 </style>
 </head>
 <body>
 <main class="card" id="gate">
- <div class="logo" aria-hidden="true">🔒</div>
- <div class="eyebrow">Sahil's Project</div>
- <h1>Secure Access</h1>
- <p>This page is protected. Enter the passcode shared with you to open it.</p>
- <form id="unlockForm">
-  <div class="field"><label for="passcode">Passcode</label><input id="passcode" type="password" autocomplete="current-password" placeholder="Enter passcode" required></div>
-  <button id="unlockBtn" type="submit">Unlock Page&nbsp; →</button>
-  <div class="error" id="error" role="alert" aria-live="polite"></div>
- </form>
+ <div class="logo" aria-hidden="true">🔒</div><div class="eyebrow">Sahil's Project</div><h1>Secure Access</h1>
+ <p>This page is protected. Enter the 4-digit passcode shared with you to open it.</p>
+ <form id="unlockForm"><div class="field"><label for="passcode">Passcode</label><input id="passcode" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" autocomplete="current-password" placeholder="••••" required></div>
+ <button id="unlockBtn" type="submit">Unlock Page&nbsp; →</button><div class="error" id="error" role="alert" aria-live="polite"></div></form>
  <div class="foot">Private page · Sahil's Project</div>
 </main>
 <div id="page" class="hidden"><button id="closePage" type="button">Close page ✕</button><iframe id="contentFrame" title="Unlocked surprise page" sandbox="allow-scripts allow-forms allow-popups allow-modals"></iframe></div>
 <script>
-(() => {
- const form=document.getElementById('unlockForm'), input=document.getElementById('passcode'), error=document.getElementById('error'), btn=document.getElementById('unlockBtn');
- const decode=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0));};
- const derive=async(pass,salt)=>{const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);};
- form.addEventListener('submit',async e=>{
-  e.preventDefault();error.textContent='';
-  const raw=location.hash.replace(/^#/,'');
-  const match=raw.match(/^secure=([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/);
-  if(!match){error.textContent='This link is incomplete or invalid. Please ask the creator to share the complete page link.';return;}
-  btn.disabled=true;btn.textContent='Checking access…';
-  try{
-   const salt=decode(match[1]),iv=decode(match[2]),cipher=decode(match[3]);
-   const key=await derive(input.value,salt);
-   const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,cipher);
-   const data=JSON.parse(new TextDecoder().decode(plain));
-   if(!data||typeof data.html!=='string')throw new Error('Invalid page data');
-   document.getElementById('contentFrame').srcdoc=data.html;
-   document.getElementById('gate').classList.add('hidden');document.getElementById('page').classList.remove('hidden');
-  }catch(_){error.textContent='Incorrect passcode or damaged page link. Please check the passcode and try again.';input.select();}
-  finally{btn.disabled=false;btn.textContent='Unlock Page  →';}
- });
- document.getElementById('closePage').addEventListener('click',()=>{document.getElementById('contentFrame').srcdoc='';document.getElementById('page').classList.add('hidden');document.getElementById('gate').classList.remove('hidden');input.value='';});
- if(!location.hash.startsWith('#secure='))error.textContent='Waiting for a protected page link. This page needs the complete link created by the editor.';
+(function(){
+"use strict";
+var SB_URL="https://nznbaqqgkjpmrihhevwa.supabase.co";
+var SB_KEY="sb_publishable_Ty7Ea6FZRyMyc7kut0IYeA_VbD30MWS";
+var form=document.getElementById("unlockForm"),input=document.getElementById("passcode"),error=document.getElementById("error"),btn=document.getElementById("unlockBtn");
+var pageId=new URLSearchParams(location.search).get("id");
+function decode(s){s=s.replace(/-/g,"+").replace(/_/g,"/");while(s.length%4)s+="=";return Uint8Array.from(atob(s),function(c){return c.charCodeAt(0)});}
+async function decryptPage(record,pass){
+ if(!record||record.secure!=="v1")throw new Error("This saved page uses an older format. Please create and share it again.");
+ var salt=decode(record.salt),iv=decode(record.iv),cipher=decode(record.cipher);
+ var material=await crypto.subtle.importKey("raw",new TextEncoder().encode(pass),"PBKDF2",false,["deriveKey"]);
+ var key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:salt,iterations:250000,hash:"SHA-256"},material,{name:"AES-GCM",length:256},false,["decrypt"]);
+ var plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:iv},key,cipher);
+ var data=JSON.parse(new TextDecoder().decode(plain));
+ if(!data||typeof data.html!=="string")throw new Error("Invalid protected page data.");
+ return data.html;
+}
+async function getEncryptedRecord(){
+ if(!pageId)throw new Error("This link is missing its page ID. Ask the creator for the complete link.");
+ var url=SB_URL+"/rest/v1/birthdays?id=eq."+encodeURIComponent(pageId)+"&select=image_url";
+ var r=await fetch(url,{headers:{apikey:SB_KEY,Authorization:"Bearer "+SB_KEY}});
+ if(!r.ok)throw new Error("Could not load this page. Check the link or try again later.");
+ var rows=await r.json();
+ if(!rows||!rows.length||!rows[0].image_url)throw new Error("This page was not found or is no longer available.");
+ var value=rows[0].image_url,record;
+ try{record=typeof value==="string"?JSON.parse(value):value;}catch(_){throw new Error("The saved page data is damaged.");}
+ return record;
+}
+var recordPromise=null;
+form.addEventListener("submit",async function(e){
+ e.preventDefault();error.textContent="";
+ if(!/^\d{4}$/.test(input.value)){error.textContent="Enter the 4-digit passcode.";return;}
+ btn.disabled=true;btn.textContent="Checking access…";
+ try{
+  if(!recordPromise)recordPromise=getEncryptedRecord();
+  var record=await recordPromise;
+  var html=await decryptPage(record,input.value);
+  document.getElementById("contentFrame").srcdoc=html;
+  document.getElementById("gate").classList.add("hidden");
+  document.getElementById("page").classList.remove("hidden");
+ }catch(err){
+  error.textContent=err&&err.message&&/Could not load|missing its page|not found|older format|damaged/.test(err.message)?err.message:"Incorrect passcode. Please try again.";
+  input.select();
+ }finally{btn.disabled=false;btn.textContent="Unlock Page  →";}
+});
+document.getElementById("closePage").addEventListener("click",function(){
+ document.getElementById("contentFrame").srcdoc="";
+ document.getElementById("page").classList.add("hidden");
+ document.getElementById("gate").classList.remove("hidden");
+ input.value="";
+});
+if(!pageId)error.textContent="This link is incomplete. It must include the page ID after ?id=.";
 })();
 </script>
 </body>
