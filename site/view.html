@@ -1,149 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#4c1d95">
-<title>A surprise for you 💌</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#171329">
+<title>Secure Access · Sahil's Project</title>
 <style>
-:root{--p:#6d28d9;--p2:#db2777;--ink:#1b1736;--dim:#6b6a80;--line:#e7e3f5}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#f7f5ff;color:var(--ink);min-height:100vh}
-button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
-
-/* lock */
-#lock{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;
-  background:linear-gradient(160deg,#2e1065,#9d174d);color:#fff;text-align:center}
-#lock.show{display:flex}
-#lock h1{font-size:26px}
-#lock p{opacity:.85;font-size:15px}
-.dots{display:flex;gap:14px;margin:6px 0}
-.dots i{width:16px;height:16px;border-radius:50%;border:2px solid #fff;opacity:.9}
-.dots i.on{background:#fff}
-.pad{display:grid;grid-template-columns:repeat(3,76px);gap:14px}
-.pad button{height:76px;border-radius:50%;background:rgba(255,255,255,.14);font-size:26px;font-weight:700;color:#fff;backdrop-filter:blur(6px)}
-.pad button:active{background:rgba(255,255,255,.3)}
-.pad .e{background:none;pointer-events:none}
-.shake{animation:sh .4s}
-@keyframes sh{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
-#err{height:18px;font-size:14px;color:#fecdd3}
-
-/* page */
-#page{display:none;max-width:480px;margin:0 auto;background:#fff;min-height:100vh}
-.pv-hero{min-height:78vh;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:28px 22px;color:#fff;
-  background:linear-gradient(160deg,#4c1d95,#be185d);background-size:cover;background-position:center}
-.pv-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(10,5,30,.8),rgba(10,5,30,.1) 70%)}
-.pv-hero>*{position:relative}
-.pv-tag{display:inline-block;align-self:flex-start;font-size:11.5px;letter-spacing:.14em;font-weight:800;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);margin-bottom:12px}
-.pv-hero h2{font-size:34px;line-height:1.1;letter-spacing:-.02em}
-.pv-hero p{margin-top:12px;font-size:16px;line-height:1.5;opacity:.95}
-.pv-by{margin-top:14px;font-size:13px;opacity:.85}
-.pv-sec{padding:26px 22px;border-top:1px solid var(--line)}
-.pv-sec h3{font-size:12px;letter-spacing:.14em;color:var(--p);font-weight:800;text-transform:uppercase;margin-bottom:10px}
-.pv-sec p{font-size:16.5px;line-height:1.6;margin-top:8px;white-space:pre-wrap}
-.pv-sec .k{font-weight:800;font-size:21px}
-.pv-sec img{width:100%;border-radius:16px;margin-top:12px;display:block}
-.foot{text-align:center;color:var(--dim);font-size:13px;padding:22px}
-#msg{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:18px;color:var(--dim);z-index:20;background:#f7f5ff}
-#msg.show{display:flex}
+:root{color-scheme:dark;--bg:#100d1c;--card:#1b1730;--line:#393052;--accent:#a78bfa;--text:#f7f4ff;--muted:#b9b1cc;--danger:#ff8d9b}*{box-sizing:border-box}body{margin:0;min-height:100svh;display:grid;place-items:center;padding:22px;background:radial-gradient(ellipse at 50% 0%,#34245d 0,transparent 55%),linear-gradient(145deg,#100d1c,#171329 65%,#21163b);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--text)}.card{width:min(100%,430px);padding:34px 26px;border:1px solid var(--line);border-radius:25px;background:#1b1730ed;box-shadow:0 24px 80px #0008;text-align:center}.logo{width:58px;height:58px;margin:0 auto 18px;border-radius:19px;display:grid;place-items:center;background:linear-gradient(135deg,#a78bfa,#7c3aed);font-size:27px}.eyebrow{font-size:11px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}h1{margin:8px 0;font-size:29px;letter-spacing:-.04em}p{color:var(--muted);line-height:1.6;margin:9px 0 22px}.field{text-align:left;margin:22px 0 14px}label{display:block;margin:0 0 8px;font-size:13px;font-weight:700;color:#e7e0f7}input{width:100%;height:53px;border:1px solid #51456e;border-radius:13px;background:#100d1c;color:white;padding:0 15px;font-size:17px;outline:none}input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #a78bfa24}button{width:100%;height:52px;border:0;border-radius:13px;background:linear-gradient(100deg,#a78bfa,#8b5cf6);color:#170e2a;font-weight:850;font-size:15px;cursor:pointer}button:disabled{opacity:.55;cursor:wait}.error{min-height:22px;color:var(--danger);font-size:13px;margin:12px 0 0}.foot{font-size:11px;color:#8f86a5;margin:23px 0 0}.hidden{display:none!important}#page{position:fixed;inset:0;background:white;z-index:3}#page iframe{width:100%;height:100%;border:0;background:white}#closePage{position:fixed;right:14px;top:14px;z-index:4;width:auto;height:40px;padding:0 14px;background:#201936;color:white;border:1px solid #ffffff44;border-radius:11px}
 </style>
 </head>
 <body>
-
-<div id="msg" class="show">Loading your surprise…</div>
-
-<div id="lock">
-  <h1 id="lockT">Enter the passcode</h1>
-  <p>Someone made this just for you 💌</p>
-  <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
-  <div id="err"></div>
-  <div class="pad" id="pad"></div>
-</div>
-
-<div id="page"></div>
-
+<main class="card" id="gate">
+ <div class="logo" aria-hidden="true">🔒</div>
+ <div class="eyebrow">Sahil's Project</div>
+ <h1>Secure Access</h1>
+ <p>This page is protected. Enter the passcode shared with you to open it.</p>
+ <form id="unlockForm">
+  <div class="field"><label for="passcode">Passcode</label><input id="passcode" type="password" autocomplete="current-password" placeholder="Enter passcode" required></div>
+  <button id="unlockBtn" type="submit">Unlock Page&nbsp; →</button>
+  <div class="error" id="error" role="alert" aria-live="polite"></div>
+ </form>
+ <div class="foot">Private page · Sahil's Project</div>
+</main>
+<div id="page" class="hidden"><button id="closePage" type="button">Close page ✕</button><iframe id="contentFrame" title="Unlocked surprise page" sandbox="allow-scripts allow-forms allow-popups allow-modals"></iframe></div>
 <script>
-(function(){
-"use strict";
-if(!window.fetch||!window.URLSearchParams){document.getElementById("msg").textContent="Please open this link in Chrome or Safari.";return}
-var SB_URL="https://nznbaqqgkjpmrihhevwa.supabase.co",SB_KEY="sb_publishable_Ty7Ea6FZRyMyc7kut0IYeA_VbD30MWS";
-function $(i){return document.getElementById(i)}
-function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
-function showMsg(t){var m=$("msg");m.textContent=t;m.className="show"}
-
-var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
-function fmtDate(v){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");if(!m)return "";return (+m[3])+" "+MONTHS[+m[2]-1]+" "+m[1]}
-function safeUrl(u){return /^(https:\/\/|data:image\/)/.test(u||"")?String(u).replace(/"/g,"%22").replace(/'/g,"%27"):""}
-
-function getId(){
-  var q=new URLSearchParams(location.search);
-  var id=q.get("id");
-  if(!id){var h=location.hash.replace(/^#\/?/,"");if(h)id=h.replace(/^id=/,"")}
-  return id;
-}
-
-function render(d){
-  var V=d.v||{},S=d.s||[],hero="";
-  S.forEach(function(s){s.f.forEach(function(f){if(f.t==="image"&&V[f.k]&&!hero)hero=safeUrl(V[f.k])})});
-  var name=V.name||V.nm||"",head=V.h||d.title||"For you";
-  var sub=V.sub||V.msg||V.q||"";
-  var h='<div class="pv-hero"'+(hero?' style="background-image:url(\''+hero+'\')"':"")+'>';
-  if(V.tag)h+='<span class="pv-tag">'+esc(V.tag)+'</span>';
-  h+='<h2>'+esc(name?((V.pet?V.pet+", ":"")+name):head)+'</h2>';
-  if(sub)h+='<p>'+esc(sub)+'</p>';
-  if(V.dob)h+='<p class="pv-by">'+esc(fmtDate(V.dob))+'</p>';
-  if(V.made||V.author||V.by)h+='<p class="pv-by">'+esc(V.made||("From "+(V.author||V.by)))+'</p>';
-  h+='</div>';
-  var skip={name:1,pass:1,pet:1,author:1,dob:1,sub:1,tag:1,made:1,hero:1};
-  S.forEach(function(s,i){
-    var body="";
-    s.f.forEach(function(f){
-      if(i===0&&skip[f.k])return;
-      var v=V[f.k];if(!v||f.t==="pass")return;
-      if(f.t==="image"){var u=safeUrl(v);if(u)body+='<img src="'+u+'" alt="" loading="lazy">'}
-      else if(f.t==="date")body+='<p>'+esc(fmtDate(v))+'</p>';
-      else body+='<p'+((/^h$|h$|t$/.test(f.k)&&f.t==="text")?' class="k"':"")+'>'+esc(v)+'</p>';
-    });
-    if(body)h+='<div class="pv-sec"><h3>'+esc(s.n)+'</h3>'+body+'</div>';
-  });
-  h+='<p class="foot">Made with love 💌</p>';
-  $("page").innerHTML=h;
-  document.title=(name?name+", ":"")+"a surprise for you 💌";
-}
-
-function unlock(d){
-  var code=String((d.v||{}).pass||"");
-  if(!/^\d{4}$/.test(code)){$("lock").classList.remove("show");$("page").style.display="block";return}
-  var pad=$("pad"),dots=$("dots").children,cur="";
-  $("lock").classList.add("show");
-  var keys=["1","2","3","4","5","6","7","8","9","","0","⌫"];
-  pad.innerHTML=keys.map(function(k){return k===""?'<button class="e" tabindex="-1"></button>':'<button data-k="'+k+'">'+k+'</button>'}).join("");
-  function paint(){for(var i=0;i<4;i++)dots[i].className=i<cur.length?"on":""}
-  pad.onclick=function(e){
-    var b=e.target.closest("[data-k]");if(!b)return;
-    var k=b.getAttribute("data-k");$("err").textContent="";
-    if(k==="⌫")cur=cur.slice(0,-1);else if(cur.length<4)cur+=k;
-    paint();
-    if(cur.length===4){
-      if(cur===code){$("lock").classList.remove("show");$("page").style.display="block";window.scrollTo(0,0)}
-      else{$("err").textContent="Wrong passcode, try again";var dd=$("dots");dd.classList.remove("shake");void dd.offsetWidth;dd.classList.add("shake");cur="";setTimeout(paint,350)}
-    }
-  };
-}
-
-var id=getId();
-if(!id){showMsg("This link is missing its page id.")}
-else{
-  fetch(SB_URL+"/rest/v1/birthdays?id=eq."+encodeURIComponent(id)+"&select=*",{headers:{apikey:SB_KEY,Accept:"application/json"}})
-   .then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()})
-   .then(function(rows){
-     if(!rows||!rows.length)throw new Error("not found");
-     var d;try{d=JSON.parse(rows[0].image_url)}catch(e){throw new Error("bad data")}
-     if(!d||!d.v)throw new Error("bad data");
-     render(d);$("msg").className="";unlock(d);
-   })
-   .catch(function(e){showMsg((e&&e.message==="not found"||e&&e.message==="bad data")?"Invalid link, or this page was deleted.":"Could not load this page ("+(e&&e.message||"network")+"). Check your internet and try again.")});
-}
+(() => {
+ const form=document.getElementById('unlockForm'), input=document.getElementById('passcode'), error=document.getElementById('error'), btn=document.getElementById('unlockBtn');
+ const decode=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0));};
+ const derive=async(pass,salt)=>{const material=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:250000,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);};
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();error.textContent='';
+  const raw=location.hash.replace(/^#/,'');
+  const match=raw.match(/^secure=([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/);
+  if(!match){error.textContent='This link is incomplete or invalid. Please ask the creator to share the complete page link.';return;}
+  btn.disabled=true;btn.textContent='Checking access…';
+  try{
+   const salt=decode(match[1]),iv=decode(match[2]),cipher=decode(match[3]);
+   const key=await derive(input.value,salt);
+   const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,cipher);
+   const data=JSON.parse(new TextDecoder().decode(plain));
+   if(!data||typeof data.html!=='string')throw new Error('Invalid page data');
+   document.getElementById('contentFrame').srcdoc=data.html;
+   document.getElementById('gate').classList.add('hidden');document.getElementById('page').classList.remove('hidden');
+  }catch(_){error.textContent='Incorrect passcode or damaged page link. Please check the passcode and try again.';input.select();}
+  finally{btn.disabled=false;btn.textContent='Unlock Page  →';}
+ });
+ document.getElementById('closePage').addEventListener('click',()=>{document.getElementById('contentFrame').srcdoc='';document.getElementById('page').classList.add('hidden');document.getElementById('gate').classList.remove('hidden');input.value='';});
+ if(!location.hash.startsWith('#secure='))error.textContent='Waiting for a protected page link. This page needs the complete link created by the editor.';
 })();
 </script>
 </body>

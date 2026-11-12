@@ -171,11 +171,6 @@ input,textarea{font:inherit;color:inherit}
         <h2>Your page is ready!</h2>
         <p id="sheetMsg">Send this link to them. Anyone who has it can open your page.</p>
         <div class="ready-link"><div class="link" id="linkBox"></div><button type="button" class="copy-inline" id="bCopy">Copy</button></div>
-        <div id="localWarn" style="display:none;margin:0 0 12px;background:#fff7ed;border:1.5px solid #fdba74;border-radius:14px;padding:12px;font-size:14px;line-height:1.45;color:#7c2d12">
-          <b>Ye link sirf is phone par chalega.</b> Dusre browser me kholne par error aayega. Apni site ka public address daalo (jahan <code>site/view.html</code> upload hai), jaise <code>https://naam.github.io/Surprise/</code>
-          <input id="baseIn" class="inp" style="margin-top:8px;font-size:15px;padding:12px" placeholder="https://naam.github.io/Surprise/" inputmode="url" autocomplete="off">
-          <button type="button" id="bBase" style="margin-top:8px;width:100%;padding:12px;border-radius:999px;font-weight:700;background:linear-gradient(90deg,#6d28d9,#e11d74);color:#fff">Update link</button>
-        </div>
         <div class="share-actions">
           <button type="button" class="wa" id="bWa">◉ &nbsp; Send on WhatsApp</button>
           <button type="button" class="ig" id="bInstagram">◎ &nbsp; Share on Instagram</button>
@@ -188,7 +183,7 @@ input,textarea{font:inherit;color:inherit}
       </aside>
     </div>
     <div class="bottom-actions">
-      <button type="button" id="bFollow">◎ &nbsp; Follow me on Instagram</button>
+      <button type="button" id="bFollow">◎ &nbsp; Follow me on Insta · @h4ck3rsahil</button>
       <button type="button" id="bFeedback">☏ &nbsp; Send feedback &nbsp;⌄</button>
     </div>
     <div class="feedback-panel" id="feedbackPanel">Thanks for helping improve this page! You can share feedback through WhatsApp.</div>
@@ -275,6 +270,8 @@ function genericSchema(cat){
   return [{n:"Basics",f:basics},{n:cat==="apology"?"Apology":"Story",f:story},{n:"Letter",f:letter}];
 }
 var schema=SCHEMAS[slug]||genericSchema(cat);
+/* Swap editor section 2 and section 3; keep all other sections and their fields intact. */
+if(schema.length>2){var sectionSwap=schema[1];schema[1]=schema[2];schema[2]=sectionSwap;}
 
 /* ---------- state ---------- */
 var S={};            // values
@@ -446,9 +443,12 @@ function sbUpload(dataUrl,i){
 }
 function isLocalUrl(u){return !/^https:\/\//i.test(u)||/^https?:\/\/(localhost|127\.|10\.|192\.168\.|0\.0\.0\.0|\[::1\])/i.test(u)}
 function viewBase(){
-  try{var pb=localStorage.getItem("mw_base");if(pb)return pb.replace(/\/+$/,"")+"/site/view.html"}catch(e){}
-  try{if(window.parent&&window.parent!==window){return new URL("site/view.html",window.parent.location.href.split("#")[0].split("?")[0]).href}}catch(e){}
-  try{return new URL("view.html",location.href.split("#")[0].split("?")[0]).href}catch(e){return "view.html"}
+  /* Build the viewer URL from this GitHub Pages project path (keeps /REPOSITORY/). */
+  var path=location.pathname;
+  var marker="/site/customize.html";
+  var at=path.toLowerCase().lastIndexOf(marker);
+  var projectRoot=at>=0?path.slice(0,at):path.replace(/\/$/,"");
+  return location.origin+projectRoot+"/site/view.html";
 }
 window.MW_SAVE=window.MW_SAVE||function(full){
   var vals=JSON.parse(JSON.stringify(full.values)),keys=[],jobs=[];
@@ -476,25 +476,26 @@ $("create").onclick=function(){
   try{var all=JSON.parse(localStorage.getItem("mw_pages")||"[]");all.push({slug:slug,title:title,created:full.created,data:full});localStorage.setItem("mw_pages",JSON.stringify(all.slice(-5)))}catch(e){}
   var done=function(link,msg){
     lastLink=link;$("linkBox").textContent=link;
-    if(msg)$("sheetMsg").textContent="Send this link to them. Anyone who has it can open your page.";
+    if(msg)$("sheetMsg").textContent=msg;
     $("readyQr").innerHTML="";
     if(window.QRCode){new QRCode($("readyQr"),{text:link,width:260,height:260,colorDark:"#111111",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});}
     else{$("readyQr").textContent="QR code unavailable";}
     $("sheetBg").classList.add("show");
-    $("localWarn").style.display=(/[?&]id=/.test(link)&&isLocalUrl(link))||!/[?&]id=/.test(link)?"block":"none";
     btn.disabled=false;btn.innerHTML="Create my page &nbsp;&#8594;";
   };
   var base=info[2]||("templates/"+cat+"/"+slug+"/index.html");
-  var local=function(){
-    var abs;try{abs=new URL("../"+base,location.href).href}catch(e){abs=base}
-    if(/^(about|blob|data):/.test(abs))abs=base;
-    done(abs.split("#")[0]+"#d="+b64(JSON.stringify(payload(false))),
-      "Link ready. Text and passcode are inside the link. Photos stay on this device until you connect online storage.");
-  };
-  /* Hook: define window.MW_SAVE(payload) -> Promise<string url> (e.g. Supabase) to host photos too */
-  if(typeof window.MW_SAVE==="function"){
-    Promise.resolve(window.MW_SAVE(full)).then(function(u){u?done(u,"Live link ready. Photos are uploaded online, so it works on any phone. They need the passcode to open it."):local()},function(err){toast("Online save failed, made a local link");console.error(err);local()});
-  }else local();
+  /* Never generate a localhost/device-only link. Only show a share link after the online save succeeds. */
+  Promise.resolve().then(function(){
+    if(typeof window.MW_SAVE!=="function")throw new Error("Online save is not configured");
+    return window.MW_SAVE(full);
+  }).then(function(u){
+    if(!u)throw new Error("Online save returned no link");
+    done(u,"Your page is saved online. Share this link; the passcode is required to open it.");
+  }).catch(function(err){
+    console.error(err);
+    btn.disabled=false;btn.innerHTML="Create my page &nbsp;&#8594;";
+    toast("Secure online save failed. Please try again later.");
+  });
 };
 $("bClose").onclick=function(){$("sheetBg").classList.remove("show")};
 $("bCopy").onclick=function(){
@@ -509,21 +510,13 @@ $("bInstagram").onclick=function(){
   if(navigator.share){navigator.share({title:"Your page is ready!",text:shareText,url:lastLink}).catch(function(){});}
   else{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(shareText).then(function(){toast("Link copied — paste it in Instagram")},function(){toast("Copy the link and paste it in Instagram")});else toast("Copy the link and paste it in Instagram");}
 };
-$("bFollow").onclick=function(){window.open("https://www.instagram.com/","_blank","noopener")};
+$("bFollow").onclick=function(){window.open("https://www.instagram.com/h4ck3rsahil/","_blank","noopener")};
 $("bFeedback").onclick=function(){$("feedbackPanel").classList.toggle("show")};
 $("bJson").onclick=function(){
   try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lastJson],{type:"application/json"}));a.download=(slug||"page")+".json";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500)}catch(e){toast("Could not save")}
 };
 
-$("bBase").onclick=function(){
-  var v=($("baseIn").value||"").trim();
-  if(!/^https:\/\/[^\s]+$/i.test(v)){toast("Address https:// se shuru hona chahiye");return}
-  try{localStorage.setItem("mw_base",v)}catch(e){}
-  var m=/[?&]id=([^&]+)/.exec(lastLink);
-  if(!m){toast("Pehle online save chahiye, phir link banega");return}
-  lastLink=v.replace(/\/+$/,"")+"/site/view.html?id="+m[1];
-  $("linkBox").textContent=lastLink;$("localWarn").style.display="none";toast("Link updated");
-};
+
 /* ---------- back arrow ---------- */
 $("back").onclick=function(){
   if(window.parent&&window.parent!==window){try{window.parent.postMessage({type:"mw-close-customize"},"*");return}catch(e){}}
