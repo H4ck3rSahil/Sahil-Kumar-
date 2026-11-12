@@ -104,18 +104,35 @@ input,textarea{font:inherit;color:inherit}
 .pv-sec img{width:100%;border-radius:16px;margin-top:12px;display:block}
 .pv-note{text-align:center;color:var(--dim);font-size:13px;margin:14px 0}
 
-/* sheet */
-.sheet-bg{position:fixed;inset:0;background:rgba(15,10,40,.55);z-index:40;display:none;align-items:flex-end;justify-content:center}
+/* share-ready success panel */
+.sheet-bg{position:fixed;inset:0;background:rgba(25,20,48,.56);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:40;display:none;align-items:center;justify-content:center;padding:18px;overflow-y:auto}
 .sheet-bg.show{display:flex}
-.sheet{background:#fff;width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:24px 20px calc(env(safe-area-inset-bottom,0px) + 22px);animation:up .25s ease}
-@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
-.sheet h2{font-size:24px;margin-bottom:6px}
-.sheet p{color:var(--dim);font-size:15px;line-height:1.45}
-.link{margin:16px 0 12px;background:var(--field);border:1.5px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;word-break:break-all;max-height:84px;overflow:auto;color:var(--ink)}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.row button{flex:1;min-width:130px;padding:14px;border-radius:999px;font-weight:700;font-size:15.5px;border:1.5px solid #d4c8f3;color:var(--p);background:#fff}
-.row button.pri{background:linear-gradient(90deg,#6d28d9,#e11d74);color:#fff;border:0}
-.close{margin-top:14px;width:100%;color:var(--dim);font-weight:600;padding:8px}
+.sheet{background:#fff;width:100%;max-width:1080px;border-radius:30px;padding:clamp(22px,4vw,42px);animation:up .25s ease;box-shadow:0 24px 80px rgba(25,15,60,.22);color:#211b3b;max-height:calc(100dvh - 36px);overflow-y:auto}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.ready-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.8fr);gap:clamp(22px,4vw,48px);align-items:center}
+.ready-main{min-width:0}.ready-icon{width:76px;height:76px;border-radius:23px;background:#f2edff;display:grid;place-items:center;font-size:37px;margin-bottom:28px}
+.sheet h2{font-size:clamp(27px,4vw,42px);line-height:1.12;letter-spacing:-1.3px;margin-bottom:12px;color:#211b3b}
+.sheet p{color:#77748b;font-size:clamp(15px,1.7vw,19px);line-height:1.5}
+.ready-link{display:flex;align-items:center;gap:8px;margin:24px 0 14px;padding:9px 10px 9px 16px;background:#f4f0ff;border:1px solid #e8e1fb;border-radius:18px;min-width:0}
+.link{flex:1;min-width:0;margin:0;padding:5px 0;background:transparent;border:0;border-radius:0;font-size:clamp(12px,1.5vw,16px);word-break:break-all;max-height:76px;overflow:auto;color:#29233f}
+.copy-inline{flex:none;border:1px solid #e4def2!important;background:#fff!important;color:#6840a0!important;border-radius:999px!important;padding:12px 22px!important;font-weight:800!important}
+.share-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.share-actions button,.open-page,.bottom-actions button{min-height:54px;padding:13px 16px;border-radius:999px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:9px}
+.share-actions .wa{background:#138b55;color:#fff;box-shadow:0 8px 20px #138b5528}
+.share-actions .ig{background:linear-gradient(100deg,#d62976,#7650d5);color:#fff;box-shadow:0 8px 20px #9b39b528}
+.open-page{width:100%;margin-top:14px;background:#fff;border:1.5px solid #e7e2ef;color:#65409b;text-decoration:none}
+.qr-card{background:#f5f1ff;border-radius:28px;padding:clamp(18px,3vw,30px);text-align:center}
+.qr-frame{width:min(100%,300px);aspect-ratio:1;margin:0 auto 18px;background:#fff;border-radius:22px;display:grid;place-items:center;padding:12px;overflow:hidden}
+#readyQr{width:100%;height:100%;display:grid;place-items:center}#readyQr canvas,#readyQr img{max-width:100%;max-height:100%;object-fit:contain}
+.qr-card p{font-size:16px;font-weight:600}
+.bottom-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:30px}
+.bottom-actions button{border-radius:14px;background:#fff5fa;border:1px solid #f3d4e5;color:#99456f}
+.bottom-actions button:last-child{background:#f5f1ff;border-color:#e9e1f7;color:#6840a0}
+.feedback-panel{display:none;margin-top:10px;padding:14px;border-radius:14px;background:#f8f6ff;color:#51466d;font-size:14px}
+.feedback-panel.show{display:block}
+.close{margin:16px auto 0;display:block;color:var(--dim);font-weight:700;padding:8px 24px}
+@media(max-width:700px){.sheet-bg{align-items:flex-end;padding:0}.sheet{max-width:none;border-radius:26px 26px 0 0;padding:24px 20px calc(env(safe-area-inset-bottom,0px) + 18px);max-height:94dvh}.ready-layout{grid-template-columns:1fr;gap:20px}.ready-icon{width:58px;height:58px;border-radius:18px;font-size:29px;margin-bottom:18px}.qr-card{padding:14px}.qr-frame{width:min(58vw,220px);padding:9px;margin-bottom:10px}.share-actions{grid-template-columns:1fr 1fr}.bottom-actions{margin-top:20px}}
+@media(max-width:380px){.share-actions button{font-size:13px;padding:12px 8px}.ready-link{padding-left:12px}.copy-inline{padding:10px 14px!important}}
 .toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#1b1736;color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
 </style>
@@ -148,23 +165,39 @@ input,textarea{font:inherit;color:inherit}
 
 <div class="sheet-bg" id="sheetBg">
   <div class="sheet">
-    <h2>Your page is ready 🎉</h2>
-    <p id="sheetMsg">Copy the link and send it. They will need the passcode to open it.</p>
-    <div class="link" id="linkBox"></div>
-    <div id="localWarn" style="display:none;margin:0 0 12px;background:#fff7ed;border:1.5px solid #fdba74;border-radius:14px;padding:12px;font-size:14px;line-height:1.45;color:#7c2d12">
-      <b>Ye link sirf is phone par chalega.</b> Dusre browser me kholne par error aayega. Apni site ka public address daalo (jahan <code>site/view.html</code> upload hai), jaise <code>https://naam.github.io/Surprise/</code>
-      <input id="baseIn" class="inp" style="margin-top:8px;font-size:15px;padding:12px" placeholder="https://naam.github.io/Surprise/" inputmode="url" autocomplete="off">
-      <button type="button" id="bBase" style="margin-top:8px;width:100%;padding:12px;border-radius:999px;font-weight:700;background:linear-gradient(90deg,#6d28d9,#e11d74);color:#fff">Update link</button>
+    <div class="ready-layout">
+      <div class="ready-main">
+        <div class="ready-icon" aria-hidden="true">💌</div>
+        <h2>Your page is ready!</h2>
+        <p id="sheetMsg">Send this link to them. Anyone who has it can open your page.</p>
+        <div class="ready-link"><div class="link" id="linkBox"></div><button type="button" class="copy-inline" id="bCopy">Copy</button></div>
+        <div id="localWarn" style="display:none;margin:0 0 12px;background:#fff7ed;border:1.5px solid #fdba74;border-radius:14px;padding:12px;font-size:14px;line-height:1.45;color:#7c2d12">
+          <b>Ye link sirf is phone par chalega.</b> Dusre browser me kholne par error aayega. Apni site ka public address daalo (jahan <code>site/view.html</code> upload hai), jaise <code>https://naam.github.io/Surprise/</code>
+          <input id="baseIn" class="inp" style="margin-top:8px;font-size:15px;padding:12px" placeholder="https://naam.github.io/Surprise/" inputmode="url" autocomplete="off">
+          <button type="button" id="bBase" style="margin-top:8px;width:100%;padding:12px;border-radius:999px;font-weight:700;background:linear-gradient(90deg,#6d28d9,#e11d74);color:#fff">Update link</button>
+        </div>
+        <div class="share-actions">
+          <button type="button" class="wa" id="bWa">◉ &nbsp; Send on WhatsApp</button>
+          <button type="button" class="ig" id="bInstagram">◎ &nbsp; Share on Instagram</button>
+        </div>
+        <button type="button" class="open-page" id="bOpen">↗ &nbsp; Open my page</button>
+      </div>
+      <aside class="qr-card">
+        <div class="qr-frame"><div id="readyQr" aria-label="QR code for your page"></div></div>
+        <p>Scan to open it on a phone</p>
+      </aside>
     </div>
-    <div class="row">
-      <button class="pri" id="bCopy">Copy link</button>
-      <button id="bWa">WhatsApp</button>
-      <button id="bJson">Save data</button>
+    <div class="bottom-actions">
+      <button type="button" id="bFollow">◎ &nbsp; Follow me on Instagram</button>
+      <button type="button" id="bFeedback">☏ &nbsp; Send feedback &nbsp;⌄</button>
     </div>
+    <div class="feedback-panel" id="feedbackPanel">Thanks for helping improve this page! You can share feedback through WhatsApp.</div>
     <button class="close" id="bClose">Close</button>
+    <button type="button" id="bJson" style="display:none">Save data</button>
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 
@@ -443,7 +476,10 @@ $("create").onclick=function(){
   try{var all=JSON.parse(localStorage.getItem("mw_pages")||"[]");all.push({slug:slug,title:title,created:full.created,data:full});localStorage.setItem("mw_pages",JSON.stringify(all.slice(-5)))}catch(e){}
   var done=function(link,msg){
     lastLink=link;$("linkBox").textContent=link;
-    if(msg)$("sheetMsg").textContent=msg;
+    if(msg)$("sheetMsg").textContent="Send this link to them. Anyone who has it can open your page.";
+    $("readyQr").innerHTML="";
+    if(window.QRCode){new QRCode($("readyQr"),{text:link,width:260,height:260,colorDark:"#111111",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});}
+    else{$("readyQr").textContent="QR code unavailable";}
     $("sheetBg").classList.add("show");
     $("localWarn").style.display=(/[?&]id=/.test(link)&&isLocalUrl(link))||!/[?&]id=/.test(link)?"block":"none";
     btn.disabled=false;btn.innerHTML="Create my page &nbsp;&#8594;";
@@ -467,6 +503,14 @@ $("bCopy").onclick=function(){
   function fb(){var r=document.createRange();r.selectNodeContents($("linkBox"));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");toast("Link copied")}catch(e){toast("Long-press the link to copy")}}
 };
 $("bWa").onclick=function(){window.open("https://wa.me/?text="+encodeURIComponent("I made something for you 💌 "+lastLink),"_blank")};
+$("bOpen").onclick=function(){if(lastLink)window.open(lastLink,"_blank","noopener")};
+$("bInstagram").onclick=function(){
+  var shareText="I made something for you 💌 "+lastLink;
+  if(navigator.share){navigator.share({title:"Your page is ready!",text:shareText,url:lastLink}).catch(function(){});}
+  else{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(shareText).then(function(){toast("Link copied — paste it in Instagram")},function(){toast("Copy the link and paste it in Instagram")});else toast("Copy the link and paste it in Instagram");}
+};
+$("bFollow").onclick=function(){window.open("https://www.instagram.com/","_blank","noopener")};
+$("bFeedback").onclick=function(){$("feedbackPanel").classList.toggle("show")};
 $("bJson").onclick=function(){
   try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lastJson],{type:"application/json"}));a.download=(slug||"page")+".json";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500)}catch(e){toast("Could not save")}
 };
