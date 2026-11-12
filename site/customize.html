@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#7c3aed">
+<title>Customize your page</title>
+<style>
+:root{
+  --p:#6d28d9; --p2:#db2777; --ink:#1b1736; --dim:#6b6a80; --line:#e7e3f5;
+  --bg:#f7f5ff; --card:#fff; --field:#f5f3ff; --ok:#16a34a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,textarea{font:inherit;color:inherit}
+
+/* top bar */
+.top{position:fixed;top:0;left:0;right:0;z-index:20;background:#fff;border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;display:flex;align-items:center;justify-content:center;min-height:56px}
+.back{position:absolute;left:10px;top:calc(env(safe-area-inset-top,0px) + 8px);width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;font-size:22px;color:var(--ink)}
+.back:active{background:var(--field)}
+.seg{display:inline-flex;background:var(--field);border-radius:999px;padding:4px;gap:2px}
+.seg button{padding:9px 22px;border-radius:999px;font-weight:700;font-size:15px;color:var(--dim);display:flex;align-items:center;gap:7px}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(80,50,160,.15)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--p2);display:none}
+.dot.show{display:inline-block}
+
+/* scroll area */
+#scroll{position:absolute;top:calc(env(safe-area-inset-top,0px) + 56px);bottom:0;left:0;right:0;overflow-y:auto;
+  padding:18px 14px calc(env(safe-area-inset-bottom,0px) + 120px);-webkit-overflow-scrolling:touch}
+.wrap{max-width:720px;margin:0 auto}
+.hd{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.hd img{width:54px;height:72px;border-radius:12px;object-fit:cover;background:var(--field);flex:none;border:1px solid var(--line)}
+.hd small{display:block;font-size:12px;letter-spacing:.08em;font-weight:800;color:var(--p)}
+.hd h1{font-size:25px;line-height:1.15;letter-spacing:-.02em;margin-top:2px}
+.sub{color:var(--dim);font-size:15px;margin:10px 0 16px;line-height:1.45}
+
+/* accordion */
+.sec{background:var(--card);border:1px solid var(--line);border-radius:20px;margin-bottom:12px;overflow:hidden}
+.sec-h{width:100%;display:flex;align-items:center;gap:14px;padding:18px 18px;text-align:left}
+.num{width:42px;height:42px;border-radius:12px;background:#ede9fe;color:var(--p);font-weight:800;display:grid;place-items:center;flex:none}
+.sec-h .t{flex:1;font-weight:800;font-size:19px}
+.sec-h .c{color:var(--dim);font-size:14px}
+.chev{width:20px;height:20px;transition:transform .2s;color:var(--dim);flex:none}
+.sec.open .chev{transform:rotate(180deg)}
+.sec-b{display:none;padding:0 18px 18px}
+.sec.open .sec-b{display:block}
+.sec.open{box-shadow:0 6px 24px rgba(109,40,217,.08)}
+
+.f{margin-top:16px}
+.f label{display:block;font-weight:700;font-size:14.5px;margin-bottom:8px}
+.inp,.ta{width:100%;background:var(--field);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;font-size:17px;outline:0}
+.inp:focus,.ta:focus{border-color:var(--p);background:#fff}
+.ta{resize:vertical;min-height:112px;line-height:1.45}
+.pass{text-align:center;letter-spacing:.5em;font-weight:800;font-size:19px;padding-left:calc(16px + .5em)}
+.hint{font-size:14px;color:var(--dim);margin-top:8px}
+
+.date{position:relative;display:flex;align-items:center;gap:14px;background:var(--field);border:1.5px solid var(--line);border-radius:14px;padding:11px 14px}
+.date .ic{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--p2));display:grid;place-items:center;color:#fff;flex:none}
+.date b{display:block;font-size:18px}
+.date span{font-size:14px;color:var(--dim)}
+.date input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.date .chev{margin-left:auto;transform:none!important}
+
+.img{display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:2px dashed #d4c8f3;border-radius:16px;padding:12px;background:#fcfbff}
+.img .th{width:62px;height:62px;border-radius:12px;background:#ede9fe;object-fit:cover;display:grid;place-items:center;color:#a78bfa;flex:none;overflow:hidden}
+.img .th img{width:100%;height:100%;object-fit:cover}
+.img .btns{display:flex;flex-direction:column;gap:6px;align-items:flex-start;flex:1;min-width:150px}
+.pick{border:1.5px solid #d4c8f3;color:var(--p);background:#fff;font-weight:700;border-radius:999px;padding:10px 16px;font-size:15.5px;display:inline-flex;gap:8px;align-items:center}
+.rm{font-size:13px;color:#b91c1c;font-weight:600;display:none}
+.rm.show{display:inline}
+.img .note{font-size:13px;color:var(--dim)}
+
+.next{margin-top:20px;border:1.5px solid #d4c8f3;color:var(--p);font-weight:700;background:#fff;border-radius:999px;padding:11px 18px;font-size:15.5px}
+
+/* bottom CTA */
+.cta{position:fixed;left:0;right:0;bottom:0;z-index:15;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 8px);
+  background:linear-gradient(to top,var(--bg) 70%,rgba(247,245,255,0))}
+.cta .in{max-width:720px;margin:0 auto}
+.create{width:100%;padding:19px;border-radius:999px;font-weight:800;font-size:19px;color:#fff;
+  background:linear-gradient(90deg,#6d28d9,#c026d3 60%,#e11d74);box-shadow:0 10px 26px rgba(160,40,200,.32)}
+.create:active{transform:scale(.99)}
+.create[disabled]{opacity:.7}
+.cta p{text-align:center;color:var(--dim);font-size:14px;margin-top:8px}
+
+/* preview */
+#pv{display:none}
+.phone{max-width:420px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 14px 40px rgba(80,50,160,.14)}
+.pv-hero{min-height:360px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:26px 22px;color:#fff;
+  background:linear-gradient(160deg,#4c1d95,#be185d);background-size:cover;background-position:center}
+.pv-hero::before{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(10,5,30,.78),rgba(10,5,30,.1) 70%)}
+.pv-hero>*{position:relative}
+.pv-tag{display:inline-block;align-self:flex-start;font-size:11.5px;letter-spacing:.14em;font-weight:800;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);margin-bottom:12px}
+.pv-hero h2{font-size:30px;line-height:1.12;letter-spacing:-.02em}
+.pv-hero p{margin-top:10px;font-size:15.5px;line-height:1.45;opacity:.95}
+.pv-by{margin-top:14px;font-size:13px;opacity:.85}
+.pv-sec{padding:22px;border-top:1px solid var(--line)}
+.pv-sec h3{font-size:12px;letter-spacing:.14em;color:var(--p);font-weight:800;text-transform:uppercase;margin-bottom:10px}
+.pv-sec p{font-size:16px;line-height:1.55;margin-top:8px;white-space:pre-wrap}
+.pv-sec .k{font-weight:800;font-size:19px}
+.pv-sec img{width:100%;border-radius:16px;margin-top:12px;display:block}
+.pv-note{text-align:center;color:var(--dim);font-size:13px;margin:14px 0}
+
+/* sheet */
+.sheet-bg{position:fixed;inset:0;background:rgba(15,10,40,.55);z-index:40;display:none;align-items:flex-end;justify-content:center}
+.sheet-bg.show{display:flex}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:26px 26px 0 0;padding:24px 20px calc(env(safe-area-inset-bottom,0px) + 22px);animation:up .25s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.sheet h2{font-size:24px;margin-bottom:6px}
+.sheet p{color:var(--dim);font-size:15px;line-height:1.45}
+.link{margin:16px 0 12px;background:var(--field);border:1.5px solid var(--line);border-radius:14px;padding:14px;font-size:13.5px;word-break:break-all;max-height:84px;overflow:auto;color:var(--ink)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1;min-width:130px;padding:14px;border-radius:999px;font-weight:700;font-size:15.5px;border:1.5px solid #d4c8f3;color:var(--p);background:#fff}
+.row button.pri{background:linear-gradient(90deg,#6d28d9,#e11d74);color:#fff;border:0}
+.close{margin-top:14px;width:100%;color:var(--dim);font-weight:600;padding:8px}
+.toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#1b1736;color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="back" id="back" aria-label="Back">&#8592;</button>
+  <div class="seg" role="tablist">
+    <button id="tEdit" class="on" role="tab">Edit</button>
+    <button id="tPrev" role="tab">Preview <i class="dot" id="dot"></i></button>
+  </div>
+</header>
+
+<main id="scroll">
+  <div class="wrap">
+    <section id="ed">
+      <div class="hd"><img id="hdImg" alt="" hidden><div><small>YOU'RE CUSTOMIZING</small><h1 id="tplTitle">…</h1></div></div>
+      <p class="sub">Open a section, type over the sample text and swap in your own photos. Nothing is shared until you press Create.</p>
+      <div id="secs"></div>
+    </section>
+    <section id="pv"><div class="phone" id="phone"></div><p class="pv-note">This is a quick preview of your text and photos.</p></section>
+  </div>
+</main>
+
+<div class="cta"><div class="in">
+  <button class="create" id="create">Create my page &nbsp;&#8594;</button>
+  <p>Free. You get a link to send them.</p>
+</div></div>
+
+<div class="sheet-bg" id="sheetBg">
+  <div class="sheet">
+    <h2>Your page is ready 🎉</h2>
+    <p id="sheetMsg">Copy the link and send it. They will need the passcode to open it.</p>
+    <div class="link" id="linkBox"></div>
+    <div id="localWarn" style="display:none;margin:0 0 12px;background:#fff7ed;border:1.5px solid #fdba74;border-radius:14px;padding:12px;font-size:14px;line-height:1.45;color:#7c2d12">
+      <b>Ye link sirf is phone par chalega.</b> Dusre browser me kholne par error aayega. Apni site ka public address daalo (jahan <code>site/view.html</code> upload hai), jaise <code>https://naam.github.io/Surprise/</code>
+      <input id="baseIn" class="inp" style="margin-top:8px;font-size:15px;padding:12px" placeholder="https://naam.github.io/Surprise/" inputmode="url" autocomplete="off">
+      <button type="button" id="bBase" style="margin-top:8px;width:100%;padding:12px;border-radius:999px;font-weight:700;background:linear-gradient(90deg,#6d28d9,#e11d74);color:#fff">Update link</button>
+    </div>
+    <div class="row">
+      <button class="pri" id="bCopy">Copy link</button>
+      <button id="bWa">WhatsApp</button>
+      <button id="bJson">Save data</button>
+    </div>
+    <button class="close" id="bClose">Close</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+
+(function(){
+"use strict";
+var TPL = {"anniversary-site":["Anniversary Site","anniversary","templates/anniversary/anniversary-site/index.html"],"anniversary-special":["Anniversary Special","anniversary","templates/anniversary/anniversary-special/index.html"],"anniversary-v2-light-edition":["Anniversary V2 Light Edition","anniversary","templates/anniversary/anniversary-v2-light-edition/index.html"],"anniversary-v2":["Anniversary V2","anniversary","templates/anniversary/anniversary-v2/index.html"],"apology-site":["Apology Site","apology","templates/apology/apology-site/index.html"],"sorry-site":["Sorry Site","apology","templates/apology/sorry-site/index.html"],"sorry-v2":["Sorry V2","apology","templates/apology/sorry-v2/index.html"],"bday-wish-1":["Bday Wish 1","birthday","templates/birthday/bday-wish-1/index.html"],"bday-wish-3":["Bday Wish 3","birthday","templates/birthday/bday-wish-3/index.html"],"bday-wish-4":["Bday Wish 4","birthday","templates/birthday/bday-wish-4/index.html"],"birthday-site":["Birthday Site","birthday","templates/birthday/birthday-site/index.html"],"birthday-v2":["Birthday V2","birthday","templates/birthday/birthday-v2/index.html"],"birthday-v3":["Birthday V3","birthday","templates/birthday/birthday-v3/index.html"],"birthday-v4":["Birthday V4","birthday","templates/birthday/birthday-v4/index.html"],"birthday-wish-2":["Birthday Wish 2","birthday","templates/birthday/birthday-wish-2/index.html"],"cute-birthday":["Cute Birthday","birthday","templates/birthday/cute-birthday/index.html"],"sweet-birthday":["Sweet Birthday","birthday","templates/birthday/sweet-birthday/index.html"],"bestfriends-day":["Bestfriends Day","friendship","templates/friendship/bestfriends-day/index.html"],"friendship-day-website":["Friendship Day","friendship","templates/friendship/friendship-day-website/index.html"],"friendship-day":["Friendship Day","friendship","templates/friendship/friendship-day/index.html"],"brothers-day":["Brothers Day","other","templates/other/brothers-day/index.html"],"compliment-site":["Compliment Site","other","templates/other/compliment-site/index.html"],"compliment-v2":["Compliment V2","other","templates/other/compliment-v2/index.html"],"cute-website-v2":["Cute Website V2","other","templates/other/cute-website-v2/index.html"],"future-together-site":["Future Together Site","other","templates/other/future-together-site/index.html"],"holi-site":["Holi Site","other","templates/other/holi-site/index.html"],"importance-site":["Importance Site","other","templates/other/importance-site/index.html"],"love-note":["Love Note","other","templates/other/love-note/index.html"],"miss-you-site":["Miss You Site","other","templates/other/miss-you-site/index.html"],"miss-you-v2":["Miss You V2","other","templates/other/miss-you-v2/index.html"],"mothers-day-special-v2":["Mothers Day Special V2","other","templates/other/mothers-day-special-v2/index.html"],"netflix-story":["Netflix Story","other","templates/other/netflix-story/index.html"],"new-year-site":["New Year Site","other","templates/other/new-year-site/index.html"],"raksha-bandhan":["Raksha Bandhan","other","templates/other/raksha-bandhan/index.html"],"special-person-site":["Special Person Site","other","templates/other/special-person-site/index.html"],"special-site":["Special Site","other","templates/other/special-site/index.html"],"thank-you-site":["Thank You Site","other","templates/other/thank-you-site/index.html"],"until-we-meet":["Until We Meet","other","templates/other/until-we-meet/index.html"],"wedding-special":["Wedding Special","other","templates/other/wedding-special/index.html"],"confession-site":["Confession Site","valentine","templates/valentine/confession-site/index.html"],"girlfriend-day-website":["Girlfriend Day","valentine","templates/valentine/girlfriend-day-website/index.html"],"girlfriends-day-v2":["Girlfriends Day V2","valentine","templates/valentine/girlfriends-day-v2/index.html"],"girlfriends-day":["Girlfriends Day","valentine","templates/valentine/girlfriends-day/index.html"],"proposal-site":["Proposal Site","valentine","templates/valentine/proposal-site/index.html"],"valentine-site":["Valentine Site","valentine","templates/valentine/valentine-site/index.html"]};
+
+/* ---------- helpers ---------- */
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove("show")},1800)}
+function titleCase(s){return s.replace(/-/g," ").replace(/\b\w/g,function(c){return c.toUpperCase()})}
+
+/* ---------- which template? ---------- */
+function getSlug(){
+  var s=(window.__MW_SLUG__||"");
+  if(!s){try{var q=new URLSearchParams(location.search);s=q.get("slug")||""}catch(e){}}
+  if(!s){var h=(location.hash||"").replace(/^#\/?/,"");if(h){s=h.indexOf("slug=")===0?h.slice(5):h}}
+  if(!s){try{if(/^slug:/.test(window.name))s=window.name.slice(5)}catch(e){}}
+  return decodeURIComponent(s||"").trim();
+}
+var slug=getSlug();
+var info=TPL[slug]||[titleCase(slug||"Your Page"),"other",null];
+var title=info[0], cat=info[1];
+
+/* ---------- field schemas ---------- */
+function F(k,l,t,d,x){var o={k:k,l:l,t:t||"text",d:d==null?"":d};if(x)for(var i in x)o[i]=x[i];return o}
+function sampleName(){return "Someone Special"}
+
+var SCHEMAS={
+ /* exactly like the screenshots */
+ "sweet-birthday":[
+  {n:"Reveal",f:[F("q","Question","text","I made something special for you… wanna see it?"),F("gif","Gif","image")]},
+  {n:"Intro",f:[F("h","Heading","text","Happy Birthday!"),F("nm","Name","text","Someone Special"),F("msg","Message","area","Today is all about you. Scroll down, there is more."),F("btn","Button text","text","Open my surprise")]},
+  {n:"Photos",f:[F("p1","Photo 1","image"),F("p2","Photo 2","image"),F("p3","Photo 3","image")]},
+  {n:"Letter",f:[F("g","Greeting","text","Dear you,"),F("body","Letter","area","You make every day brighter. Thank you for being you. I hope this year gives you everything you deserve."),F("so","Sign-off","text","With love,"),F("by","From","text","Forever Yours")]}
+ ],
+ "jashnova-3d-romantic-birthday":null /* filled below */
+};
+function chapter(n,def){
+  return {n:"Chapter "+n,f:[
+    F("c"+n+"t","Chapter tag","text",def.tag),F("c"+n+"h","Title","text",def.title),F("c"+n+"d","Date or place","text",def.when),
+    F("c"+n+"s","Story","area",def.story),F("c"+n+"p1","Photo 1","image"),F("c"+n+"x1","Caption 1","text",def.cap1),
+    F("c"+n+"p2","Photo 2","image"),F("c"+n+"x2","Caption 2","text",def.cap2),F("c"+n+"q","Quote","text",def.quote),F("c"+n+"e","Emoji","text",def.emoji)]};
+}
+function birthdayBasics(){
+  return {n:"Basics",f:[
+    F("name","Name","text","Someone Special"),
+    F("pass","Passcode","pass","1234",{hint:"They'll type this on the keypad to open your page. Remember it!"}),
+    F("pet","Pet name","text","My Love"),F("author","Author","text","Forever Yours"),
+    F("dob","Birth date","date","2005-08-13"),
+    F("sub","Subtitle","area","Happy Birthday to Someone Special! Our journey made of pure magic, forever & always ❤️"),
+    F("tag","Date tag","text","SPECIAL DAY"),F("made","Made for text","text","FOREVER & EVER YOURS ❤️"),
+    F("hero","Hero bg image","image")]};
+}
+SCHEMAS["jashnova-3d-romantic-birthday"]=[
+  birthdayBasics(),
+  chapter(1,{tag:"HOW IT STARTED",title:"The day we met",when:"Add a date",story:"I still remember the first time I saw you. Everything felt different after that.",cap1:"Our first picture",cap2:"Another favourite",quote:"You are my favourite person.",emoji:"💫"}),
+  chapter(2,{tag:"OUR JOURNEY",title:"Every little moment",when:"Add a date",story:"Late night talks, silly jokes and quiet moments. Every one of them is my favourite memory.",cap1:"Us, being us",cap2:"Pure happiness",quote:"With you, home is a person.",emoji:"🌙"}),
+  {n:"Birthday wishes",f:[F("w0","Heading","text","My wish for you"),F("w1","Wish 1","area","May you always smile like this."),F("w2","Wish 2","area","May every dream you chase find you."),F("w3","Final line","text","Happy Birthday, my love ❤️")]}
+];
+
+function genericSchema(cat){
+  var kind={birthday:"Happy Birthday",anniversary:"Happy Anniversary",apology:"I'm Sorry",valentine:"Happy Valentine's Day",friendship:"Happy Friendship Day"}[cat]||"Just for you";
+  var basics=[F("name","Name","text","Someone Special"),F("pass","Passcode","pass","1234",{hint:"They'll type this to open your page. Remember it!"}),
+    F("pet","Pet name","text","My Love"),F("author","Your name","text","Forever Yours")];
+  if(cat==="birthday"||cat==="anniversary"||cat==="valentine")basics.push(F("dob",cat==="birthday"?"Birth date":"Date","date",cat==="birthday"?"2005-08-13":"2024-02-14"));
+  basics.push(F("sub","Subtitle","area",kind+" to Someone Special! You mean the world to me."));
+  basics.push(F("tag","Date tag","text",cat==="apology"?"FROM THE HEART":"SPECIAL DAY"));
+  basics.push(F("hero","Cover photo","image"));
+  var story=[F("h","Heading","text",cat==="apology"?"I owe you a real sorry":"Our little story"),
+    F("msg","Message","area",cat==="apology"?"I know I hurt you and I am really sorry. You matter to me more than my pride.":"Every moment with you is a memory I want to keep forever."),
+    F("p1","Photo 1","image"),F("x1","Caption 1","text","Us"),F("p2","Photo 2","image"),F("x2","Caption 2","text","My favourite day")];
+  var letter=[F("g","Greeting","text","Dear you,"),F("body","Letter","area",cat==="apology"?"Please give me one more chance to show you how much you mean to me.":"Thank you for being you. I am so lucky to have you."),F("so","Sign-off","text","With love,"),F("by","From","text","Forever Yours")];
+  return [{n:"Basics",f:basics},{n:cat==="apology"?"Apology":"Story",f:story},{n:"Letter",f:letter}];
+}
+var schema=SCHEMAS[slug]||genericSchema(cat);
+
+/* ---------- state ---------- */
+var S={};            // values
+var openIdx=0;
+schema.forEach(function(s){s.f.forEach(function(f){S[f.k]=f.d})});
+
+/* ---------- date format ---------- */
+var MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+function fmtDate(v){
+  var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(v||"");if(!m)return["Pick a date",""];
+  var d=new Date(+m[1],+m[2]-1,+m[3]);
+  return[d.getDate()+" "+MONTHS[d.getMonth()]+" "+d.getFullYear(),DAYS[d.getDay()]];
+}
+
+/* ---------- image resize ---------- */
+function readImage(file,cb){
+  var fr=new FileReader();
+  fr.onerror=function(){toast("Could not read that photo")};
+  fr.onload=function(){
+    if(/gif$/i.test(file.type)&&file.size<1500000){cb(fr.result);return}
+    var im=new Image();
+    im.onerror=function(){toast("That file is not an image")};
+    im.onload=function(){
+      var M=900,w=im.width,h=im.height,r=Math.min(1,M/Math.max(w,h));
+      var c=document.createElement("canvas");c.width=Math.round(w*r);c.height=Math.round(h*r);
+      c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+      cb(c.toDataURL("image/jpeg",.82));
+    };
+    im.src=fr.result;
+  };
+  fr.readAsDataURL(file);
+}
+
+/* ---------- render editor ---------- */
+var CH='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
+var CAL='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>';
+var IMG='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="m21 16-5-5-9 9"/></svg>';
+
+function fieldHTML(f){
+  var id="f_"+f.k, v=S[f.k], h='<div class="f"><label for="'+id+'">'+esc(f.l)+'</label>';
+  if(f.t==="text")h+='<input class="inp" id="'+id+'" data-k="'+f.k+'" value="'+esc(v)+'" autocomplete="off">';
+  else if(f.t==="area")h+='<textarea class="ta" id="'+id+'" data-k="'+f.k+'">'+esc(v)+'</textarea>';
+  else if(f.t==="pass")h+='<input class="inp pass" id="'+id+'" data-k="'+f.k+'" value="'+esc(v)+'" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">';
+  else if(f.t==="date"){var d=fmtDate(v);h+='<div class="date">'+'<span class="ic">'+CAL+'</span><div><b data-dt="'+f.k+'">'+esc(d[0])+'</b><span data-dw="'+f.k+'">'+esc(d[1])+'</span></div>'+CH+'<input type="date" id="'+id+'" data-k="'+f.k+'" value="'+esc(v)+'"></div>'}
+  else if(f.t==="image"){
+    h+='<div class="img"><div class="th" data-th="'+f.k+'">'+(v?'<img src="'+v+'" alt="">':IMG)+'</div>'
+     +'<div class="btns"><button type="button" class="pick" data-pick="'+f.k+'">'+IMG.replace('width="26" height="26"','width="16" height="16"')+' Choose a photo</button>'
+     +'<button type="button" class="rm'+(v?' show':'')+'" data-rm="'+f.k+'">Remove photo</button>'
+     +'<span class="note">JPG, PNG or GIF from your phone or computer</span></div>'
+     +'<input type="file" accept="image/*" hidden data-file="'+f.k+'"></div>';
+  }
+  if(f.hint)h+='<p class="hint">'+esc(f.hint)+'</p>';
+  return h+'</div>';
+}
+
+function render(){
+  $("tplTitle").textContent=title;
+  document.title="Customize "+title;
+  var th=info[2]?info[2].replace(/templates\/[^/]+\/([^/]+)\/index\.html/,"images/$1.webp"):"";
+  if(th){var im=$("hdImg");im.src=th;im.hidden=false;im.onerror=function(){im.hidden=true}}
+  var out="";
+  schema.forEach(function(s,i){
+    out+='<div class="sec'+(i===openIdx?' open':'')+'" data-i="'+i+'">'
+      +'<button class="sec-h" type="button" data-open="'+i+'"><span class="num">'+(i+1)+'</span><span class="t">'+esc(s.n)+'</span><span class="c">'+s.f.length+' fields</span>'+CH+'</button>'
+      +'<div class="sec-b">'+s.f.map(fieldHTML).join("")
+      +(i<schema.length-1?'<button type="button" class="next" data-next="'+(i+1)+'">Next: '+esc(schema[i+1].n)+' &nbsp;&#8594;</button>':'')
+      +'</div></div>';
+  });
+  $("secs").innerHTML=out;
+}
+
+function open(i){
+  openIdx=(openIdx===i)?-1:i;
+  var all=document.querySelectorAll(".sec");
+  for(var j=0;j<all.length;j++)all[j].classList.toggle("open",j===openIdx);
+  if(openIdx>=0){var el=all[openIdx];setTimeout(function(){el.scrollIntoView({behavior:"smooth",block:"start"})},40)}
+}
+
+/* ---------- events ---------- */
+var secs=$("secs");
+secs.addEventListener("click",function(e){
+  var t=e.target.closest("[data-open],[data-next],[data-pick],[data-rm]");if(!t)return;
+  if(t.hasAttribute("data-open")){open(+t.getAttribute("data-open"))}
+  else if(t.hasAttribute("data-next")){openIdx=-1;open(+t.getAttribute("data-next"))}
+  else if(t.hasAttribute("data-pick")){var inp=secs.querySelector('[data-file="'+t.getAttribute("data-pick")+'"]');if(inp)inp.click()}
+  else if(t.hasAttribute("data-rm")){setImg(t.getAttribute("data-rm"),"")}
+});
+function setImg(k,val){
+  S[k]=val;
+  var th=secs.querySelector('[data-th="'+k+'"]');if(th)th.innerHTML=val?'<img src="'+val+'" alt="">':IMG;
+  var rm=secs.querySelector('[data-rm="'+k+'"]');if(rm)rm.classList.toggle("show",!!val);
+  $("dot").classList.add("show");
+}
+secs.addEventListener("input",function(e){
+  var k=e.target.getAttribute&&e.target.getAttribute("data-k");if(!k)return;
+  var v=e.target.value;
+  if(e.target.classList.contains("pass")){v=v.replace(/\D/g,"").slice(0,4);if(v!==e.target.value)e.target.value=v}
+  S[k]=v;$("dot").classList.add("show");
+  if(e.target.type==="date"){var d=fmtDate(v);var a=secs.querySelector('[data-dt="'+k+'"]'),b=secs.querySelector('[data-dw="'+k+'"]');if(a)a.textContent=d[0];if(b)b.textContent=d[1]}
+});
+secs.addEventListener("change",function(e){
+  var k=e.target.getAttribute&&e.target.getAttribute("data-file");if(!k)return;
+  var f=e.target.files&&e.target.files[0];if(!f)return;
+  readImage(f,function(url){setImg(k,url)});
+  e.target.value="";
+});
+
+/* tabs */
+function tab(p){
+  $("tEdit").classList.toggle("on",!p);$("tPrev").classList.toggle("on",p);
+  $("ed").style.display=p?"none":"block";$("pv").style.display=p?"block":"none";
+  if(p){drawPreview();$("dot").classList.remove("show")}
+  $("scroll").scrollTop=0;
+}
+$("tEdit").onclick=function(){tab(false)};
+$("tPrev").onclick=function(){tab(true)};
+
+/* ---------- preview ---------- */
+function drawPreview(){
+  var first=schema[0].f, hero="", h="";
+  first.forEach(function(f){if(f.t==="image"&&S[f.k]&&!hero)hero=S[f.k]});
+  if(!hero){schema.forEach(function(s){s.f.forEach(function(f){if(f.t==="image"&&S[f.k]&&!hero)hero=S[f.k]})})}
+  var name=S.name||S.nm||"", tag=S.tag||(S.q?"":"") , head=S.h||(name?"Happy for "+name:title);
+  var big=S.name?title.replace(/^\s+|\s+$/g,"")+" for "+S.name:head;
+  var sub=S.sub||S.msg||S.q||"";
+  h+='<div class="pv-hero"'+(hero?' style="background-image:url(\''+hero.replace(/'/g,"%27")+'\')"':"")+'>';
+  if(tag)h+='<span class="pv-tag">'+esc(tag)+'</span>';
+  h+='<h2>'+esc(S.name?(S.pet?S.pet+", ":"")+S.name:head)+'</h2>';
+  if(sub)h+='<p>'+esc(sub)+'</p>';
+  if(S.dob){h+='<p class="pv-by">'+esc(fmtDate(S.dob)[0])+'</p>'}
+  if(S.made||S.author||S.by)h+='<p class="pv-by">'+esc(S.made||("From "+(S.author||S.by)))+'</p>';
+  h+='</div>';
+  var skip={name:1,pass:1,pet:1,author:1,dob:1,sub:1,tag:1,made:1,hero:1};
+  schema.forEach(function(s,i){
+    var body="";
+    s.f.forEach(function(f){
+      if(i===0&&skip[f.k])return;
+      var v=S[f.k];if(!v)return;
+      if(f.t==="image")body+='<img src="'+v.replace(/"/g,"%22")+'" alt="">';
+      else if(f.t==="date")body+='<p>'+esc(fmtDate(v)[0])+'</p>';
+      else if(f.t==="pass")return;
+      else body+='<p'+((/h$|^h$|t$/.test(f.k)&&f.t==="text")?' class="k"':"")+'>'+esc(v)+'</p>';
+    });
+    if(body)h+='<div class="pv-sec"><h3>'+esc(s.n)+'</h3>'+body+'</div>';
+  });
+  $("phone").innerHTML=h;
+}
+
+/* ---------- create ---------- */
+function b64(str){return btoa(unescape(encodeURIComponent(str)))}
+function payload(withImages){
+  var vals={};
+  schema.forEach(function(s){s.f.forEach(function(f){
+    if(f.t==="image"&&!withImages)return;
+    if(S[f.k]!=null&&S[f.k]!=="")vals[f.k]=S[f.k];
+  })});
+  return {v:1,slug:slug,title:title,category:cat,values:vals,created:new Date().toISOString()};
+}
+
+/* ---------- Supabase (same project as your index.html: table "birthdays", bucket "photos") ---------- */
+var SB_URL="https://nznbaqqgkjpmrihhevwa.supabase.co",SB_KEY="sb_publishable_Ty7Ea6FZRyMyc7kut0IYeA_VbD30MWS";
+function dataToBlob(u){var p=u.split(","),m=/data:([^;]+)/.exec(p[0])[1],bin=atob(p[1]),a=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:m})}
+function sbUpload(dataUrl,i){
+  var blob=dataToBlob(dataUrl),ext=blob.type==="image/gif"?"gif":"jpg";
+  var path="cz_"+Date.now()+"_"+i+"_"+Math.random().toString(36).slice(2)+"."+ext;
+  return fetch(SB_URL+"/storage/v1/object/photos/"+path,{method:"POST",headers:{apikey:SB_KEY,"Content-Type":blob.type,"x-upsert":"false"},body:blob})
+   .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error("Upload failed: "+t)});return SB_URL+"/storage/v1/object/public/photos/"+path});
+}
+function isLocalUrl(u){return !/^https:\/\//i.test(u)||/^https?:\/\/(localhost|127\.|10\.|192\.168\.|0\.0\.0\.0|\[::1\])/i.test(u)}
+function viewBase(){
+  try{var pb=localStorage.getItem("mw_base");if(pb)return pb.replace(/\/+$/,"")+"/site/view.html"}catch(e){}
+  try{if(window.parent&&window.parent!==window){return new URL("site/view.html",window.parent.location.href.split("#")[0].split("?")[0]).href}}catch(e){}
+  try{return new URL("view.html",location.href.split("#")[0].split("?")[0]).href}catch(e){return "view.html"}
+}
+window.MW_SAVE=window.MW_SAVE||function(full){
+  var vals=JSON.parse(JSON.stringify(full.values)),keys=[],jobs=[];
+  Object.keys(vals).forEach(function(k){if(/^data:image\//.test(vals[k]))keys.push(k)});
+  keys.forEach(function(k,i){jobs.push(sbUpload(vals[k],i).then(function(u){vals[k]=u}))});
+  return Promise.all(jobs).then(function(){
+    var body={name:vals.name||vals.nm||full.title,month:"Custom Page",day:full.slug,
+      image_url:JSON.stringify({tpl:full.slug,title:full.title,cat:full.category,v:vals,s:schema.map(function(s){return {n:s.n,f:s.f.map(function(f){return {k:f.k,l:f.l,t:f.t}})}})})};
+    return fetch(SB_URL+"/rest/v1/birthdays",{method:"POST",headers:{apikey:SB_KEY,"Content-Type":"application/json",Prefer:"return=representation"},body:JSON.stringify([body])})
+     .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error("Save failed: "+t)});return r.json()})
+     .then(function(rows){return viewBase()+"?id="+encodeURIComponent(rows[0].id)});
+  });
+};
+var lastLink="",lastJson="";
+$("create").onclick=function(){
+  var passField=null;
+  schema.forEach(function(s){s.f.forEach(function(f){if(f.t==="pass")passField=f})});
+  if(passField&&!/^\d{4}$/.test(S[passField.k]||"")){
+    openIdx=-1;open(0);toast("Passcode must be 4 digits");
+    setTimeout(function(){var el=$("f_"+passField.k);if(el)el.focus()},300);return;
+  }
+  var btn=$("create");btn.disabled=true;btn.innerHTML="Uploading photos…";
+  var full=payload(true);
+  lastJson=JSON.stringify(full);
+  try{var all=JSON.parse(localStorage.getItem("mw_pages")||"[]");all.push({slug:slug,title:title,created:full.created,data:full});localStorage.setItem("mw_pages",JSON.stringify(all.slice(-5)))}catch(e){}
+  var done=function(link,msg){
+    lastLink=link;$("linkBox").textContent=link;
+    if(msg)$("sheetMsg").textContent=msg;
+    $("sheetBg").classList.add("show");
+    $("localWarn").style.display=(/[?&]id=/.test(link)&&isLocalUrl(link))||!/[?&]id=/.test(link)?"block":"none";
+    btn.disabled=false;btn.innerHTML="Create my page &nbsp;&#8594;";
+  };
+  var base=info[2]||("templates/"+cat+"/"+slug+"/index.html");
+  var local=function(){
+    var abs;try{abs=new URL("../"+base,location.href).href}catch(e){abs=base}
+    if(/^(about|blob|data):/.test(abs))abs=base;
+    done(abs.split("#")[0]+"#d="+b64(JSON.stringify(payload(false))),
+      "Link ready. Text and passcode are inside the link. Photos stay on this device until you connect online storage.");
+  };
+  /* Hook: define window.MW_SAVE(payload) -> Promise<string url> (e.g. Supabase) to host photos too */
+  if(typeof window.MW_SAVE==="function"){
+    Promise.resolve(window.MW_SAVE(full)).then(function(u){u?done(u,"Live link ready. Photos are uploaded online, so it works on any phone. They need the passcode to open it."):local()},function(err){toast("Online save failed, made a local link");console.error(err);local()});
+  }else local();
+};
+$("bClose").onclick=function(){$("sheetBg").classList.remove("show")};
+$("bCopy").onclick=function(){
+  var t=lastLink;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast("Link copied")},fb)}else fb();
+  function fb(){var r=document.createRange();r.selectNodeContents($("linkBox"));var s=getSelection();s.removeAllRanges();s.addRange(r);try{document.execCommand("copy");toast("Link copied")}catch(e){toast("Long-press the link to copy")}}
+};
+$("bWa").onclick=function(){window.open("https://wa.me/?text="+encodeURIComponent("I made something for you 💌 "+lastLink),"_blank")};
+$("bJson").onclick=function(){
+  try{var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([lastJson],{type:"application/json"}));a.download=(slug||"page")+".json";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500)}catch(e){toast("Could not save")}
+};
+
+$("bBase").onclick=function(){
+  var v=($("baseIn").value||"").trim();
+  if(!/^https:\/\/[^\s]+$/i.test(v)){toast("Address https:// se shuru hona chahiye");return}
+  try{localStorage.setItem("mw_base",v)}catch(e){}
+  var m=/[?&]id=([^&]+)/.exec(lastLink);
+  if(!m){toast("Pehle online save chahiye, phir link banega");return}
+  lastLink=v.replace(/\/+$/,"")+"/site/view.html?id="+m[1];
+  $("linkBox").textContent=lastLink;$("localWarn").style.display="none";toast("Link updated");
+};
+/* ---------- back arrow ---------- */
+$("back").onclick=function(){
+  if(window.parent&&window.parent!==window){try{window.parent.postMessage({type:"mw-close-customize"},"*");return}catch(e){}}
+  if(history.length>1)history.back();else location.href="../index.html";
+};
+
+/* slug can also arrive by message */
+window.addEventListener("message",function(e){
+  var d=e.data;if(d&&d.type==="mw-slug"&&d.slug&&d.slug!==slug){window.__MW_SLUG__=d.slug;location.reload()}
+});
+
+render();
+})();
+</script>
+</body>
+</html>
